@@ -5,9 +5,11 @@
     </div>
     <div class="home__right__bottom">
       <div class="home__right_title">
+       
         <span>Mã</span>
       </div>
       <div class="home__right_table">
+       
         <ctable :columns="columnConfigs.columns" :datax="columnConfigs.datax" />
       </div>
     </div>
@@ -52,13 +54,11 @@ export default {
         change_price: Math.floor(Math.random() * 10),
       }
     });
-    var fakeData = this.generateFakeData(dataConvert);
-    console.log(JSON.stringify(fakeData));
     this.columnConfigs.datax = [...dataConvert];
     this.orginalData = [...dataConvert];
   },
   methods: {
-    
+
   },
 }; </script>
 

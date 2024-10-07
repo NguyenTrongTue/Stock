@@ -17,8 +17,8 @@ public class Program
         }));
         // Add services to the container.
         builder.Services.AddControllers();
-        builder.Services.AddJobs();
         builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddJobs();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();

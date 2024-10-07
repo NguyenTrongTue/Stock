@@ -7,5 +7,7 @@ namespace Stock.BE.Core.DL
     public interface IStockDL : IBaseRepository<StockEntity>
     {
         Task<List<object>> GetStockByPeriodAsync(Guid stockId, PeriodEnum periodEnum);
+
+        Task<List<StockEntity>> GetPopularStockAsync();
     }
 }

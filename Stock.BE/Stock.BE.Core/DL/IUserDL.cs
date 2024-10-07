@@ -1,8 +1,9 @@
 ﻿using Stock.BE.Core.BaseDL.Repository;
+using Stock.BE.Core.DTO;
 using Stock.BE.Core.Model;
 using System;
 
-namespace Stock.BE.Core.DL.UserDL
+namespace Stock.BE.Core.DL
 {
     public interface IUserDL : IBaseRepository<UserEntity>
     {
@@ -14,6 +15,9 @@ namespace Stock.BE.Core.DL.UserDL
         /// Created by: nttue - 20/11/2023
         Task<UserEntity> GetUserByEmailAsync(string email);
 
-        Task UpdatePassWordAsync(byte[] passwordHash,  byte[] passwordSalt, Guid user_id);
+        Task UpdatePassWordAsync(byte[] passwordHash, byte[] passwordSalt, Guid user_id);
+
+        Task InsertUser(UserDto userDto);
+        
     }
 }

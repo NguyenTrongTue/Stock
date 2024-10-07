@@ -44,7 +44,7 @@
 <script>
 import SideBar from "@/components/sidebar/SideBar.vue";
 import MLineChart from '@/components/line-chart/MLineChart.vue';
-import SearchStock from '@/components/search-stock/SearchStock.vue'
+import SearchStock from '@/components/search-stock/SearchStock.vue';
 export default {
   components: {
     SideBar,

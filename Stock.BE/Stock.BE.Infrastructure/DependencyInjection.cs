@@ -10,6 +10,7 @@ public static class DependencyInjection
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuation)
     {
         services.AddScoped<IStockDL, StockDL>();
+        services.AddScoped<IUserDL, UserDL>();
         string? connectionString = configuation.GetConnectionString("ESP");
         connectionString = connectionString ?? "";
         services.AddScoped<IUnitOfWork>((provider => new UnitOfWork(connectionString)));

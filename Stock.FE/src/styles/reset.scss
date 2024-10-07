@@ -21,10 +21,10 @@ input {
   border: none;
 }
 input {
+  background-color: transparent !important;
   &::placeholder {
     font-family: "notosans", sans-serif;
   }
-  background-color: transparent !important;
 }
 
 input[type="text"]::-webkit-calendar-picker-indicator {

@@ -6,16 +6,16 @@
 
     </div>
     <div class="line_chart">
-
-      <Line :data="chartConfig.data[currentStock][currentPeriod]" :options="chartConfig.options" ref="chart1" />
+      <apexchart type="area" height="320" ref="chart" :options="chartOptions" :series="series">
+      </apexchart>
     </div>
     <div class="line_chart__bottom">
-      <div class="line_chart__bottom_item" @click="handleChooseStock(stock.stock_code)" v-for="stock in stocks"
-        :key="stock.stock_code" :class="{ 'active': stock.stock_code == currentStock }">
+      <div class="line_chart__bottom_item" @click="handleChooseStock(stock.stock_id)" v-for="stock in stocks"
+        :key="stock.stock_id" :class="{ 'active': stock.stock_id == currentStock }">
         <div class="top">{{ stock.stock_code }}</div>
         <div class="middle" :class="`${computedColor(stock.different)}`">
           <div>{{ stock.total_volume }}</div>
-          <div>{{ stock.change_price }}{{ stock.change_price_by_percent }}</div>
+          <div>{{ stock.change_price }}({{ stock.change_price_by_percent }}%)</div>
         </div>
         <div class="bottom">{{ stock.total_assets }}</div>
       </div>
@@ -26,91 +26,96 @@
 </template>
 
 <script>
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Line } from 'vue-chartjs';
-import * as chartConfig from './chartConfig.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-)
+import { configOptions } from './chartConfig.js';
+import StockAPI from '@/apis/StockAPI.js';
 
 export default {
-  name: 'App',
-  components: {
-    Line
-  },
-  mounted() {
+  name: 'MLineChart',
 
+  async mounted() {
+    await this.getPopularStock();
   },
   data() {
     return {
-      chartConfig,
-      currentPeriod: '1W',
+      ...configOptions,
+      currentPeriod: 1,
       periods: [
         {
-          key: '1W',
+          key: 0,
           label: '1W',
         },
         {
-          key: '1M',
+          key: 1,
           label: '1M',
         },
         {
-          key: '6M',
+          key: 2,
           label: '6M',
         },
         {
-          key: '1Y',
+          key: 3,
           label: '1Y',
         },
       ],
-      currentStock: 'VNINDEX',
+      currentStock: '',
       stocks: [
-        {
-          stock_code: 'VNINDEX',
-          total_volume: '1,273.96',
-          total_assets: "15,481.693 tỷ",
-          change_price: "6.34",
-          change_price_by_percent: "(0.48%)",
-          different: 0
-        },
-        {
-          stock_code: 'VN30',
-          total_volume: '1,273.96',
-          total_assets: "15,481.693 tỷ",
-          change_price: "6.34",
-          change_price_by_percent: "(0.48%)",
-          different: 1
-        },
-        {
-          stock_code: 'VN30F1M',
-          total_volume: '1,273.96',
-          total_assets: "15,481.693 tỷ",
-          change_price: "6.34",
-          change_price_by_percent: "(0.48%)",
-          different: 2
-        }
-      ]
+      ],
+    }
+  },
+  watch: {
+    async currentPeriod() {
+      await this.getData();
+    },
+
+    async currentStock() {
+      await this.getData();
     }
   },
   methods: {
-    handleChooseStock(stockCode) {
-      this.currentStock = stockCode;
+
+    async getPopularStock() {
+      let result = await StockAPI.getPopularStock();
+      this.stocks = result.map(item => {
+        return {
+          ...item,
+          change_price_by_percent: (Math.random()).toFixed(2),
+          change_price: (Math.random() * 10).toFixed(2),
+          different: Math.floor(Math.random() * 3),
+          total_assets: this.formatToBillion(item.total_assets),
+          total_volume: this.formatAmount(item.total_volume),
+        }
+      });
+      this.currentStock = this.stocks[0].stock_id;
+
+    },
+
+    formatToBillion(num) {
+      let billion = (num / 1_000_000_000).toFixed(2);
+      return `${billion} tỉ`;
+    },
+    formatAmount(amount) {
+      if (amount) {
+        let formattedAmount = amount
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return formattedAmount;
+      } else {
+        return "";
+      }
+    },
+    async getData() {
+      let result = await StockAPI.getStockByPeriod({ stockId: this.currentStock, periodEnum: this.currentPeriod });
+      if (result.length > 0) {
+
+        this.series[0].data = result.map(item =>
+          [new Date(item.modified_at), item.current_price.toFixed(2)],
+        );
+      }
+      debugger
+    },
+
+    handleChooseStock(stockId) {
+      this.currentStock = stockId;
     },
     computedColor(different) {
       switch (different) {

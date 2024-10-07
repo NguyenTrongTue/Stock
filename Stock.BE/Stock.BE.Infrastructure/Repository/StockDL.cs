@@ -51,7 +51,7 @@ namespace Stock.BE.Infrastructure.Repository
         /// <returns></returns>
         public async Task<List<StockEntity>> GetPopularStockAsync()
         {
-            var sql = @"select * from stock where stock_id in ('ac29582d-e41a-4576-9596-4ac398f14f84',
+            var sql = @"select * from stocks where stock_id in ('ac29582d-e41a-4576-9596-4ac398f14f84',
                                             '9db887ad-1c70-479e-87c6-4bdcabf71d4e',
                                             '75f14796-133c-4691-aa3d-e31a7f290c91')";
             var result = await _uow.Connection.QueryAsync<StockEntity>(sql);

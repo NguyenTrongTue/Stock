@@ -1,19 +1,17 @@
 <template>
   <div class="input-default" :class="error ? 'error' : ''">
-    <div class="input-label-wrapper" v-if="label">
-      <span class="input-label">{{ label }}</span>
-      <span class="input-required">{{
-    rules?.includes("required") ? " *" : ""
-  }}</span>
-    </div>
+
 
     <div class="input-wrapper">
       <component :is="typeComponent" class="input" ref="minput" :type="typeInput ? typeInput : 'text'" :rules="rules"
-        :name="name" :error="error" :value="dataValue" :style="{ 'text-align': textAlign }"
-        :placeholder="placeholderInput" :tabindex="tabIndex" @input="onInput" :maxlength="maxLength > 0 && maxLength"
-        @blur="onBlur(name)" spellcheck="false" />
+        :name="name" :error="error" :value="dataValue" :style="{ 'text-align': textAlign }" :tabindex="tabIndex"
+        @input="onInput" :maxlength="maxLength > 0 && maxLength" @blur="onBlur(name)" spellcheck="false" />
       <component :is="showIcon2 ? icon2 : icon1" class="input__icon" @click="clickIcon"></component>
-      <div class="change_input_wrapper">
+      <div class="input-label-wrapper" :class="!dataValue ? 'no-text' : 'has-text'" v-if="label"
+        @click="handleClickLabel">
+        <span class="input-label">{{ label }}</span>
+      </div>
+      <div class="change_input_wrapper" v-if="isAdjustable">
         <div class="decrease" @click="handleDecrease">
           <micon type="Decrease" />
         </div>
@@ -21,6 +19,7 @@
           <micon type="Increase" />
         </div>
       </div>
+
     </div>
     <div class="flex-between" v-if="checkError">
       <div v-show="error" class="input-error">{{ error }}</div>
@@ -136,6 +135,9 @@ export default {
     }
   },
   methods: {
+    handleClickLabel() {
+      this.$refs.minput.focus();
+    },
     handleDecrease() {
       if ((this.currentValue - this.defaultChangeValue) <= 0) {
         this.assignDataValue(0);
