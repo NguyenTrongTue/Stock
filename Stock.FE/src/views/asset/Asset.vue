@@ -15,7 +15,7 @@
               <mbutton @click="depositAmount" buttonText="Nạp tiền tài khoản" borderType="secondary" />
             </div>
           </div>
-          <Doughnut />
+          <Doughnut :assetProps="asset" />
         </div>
         <div class="column-chart">
           <div class="chart_title flex-between"><span>Lịch sử tài sản</span>
@@ -25,7 +25,7 @@
 
             </div>
           </div>
-          <ColumnChart />
+          <ColumnChart :data-props="historys" />
         </div>
       </div>
     </div>
@@ -36,48 +36,125 @@
 import Doughnut from '@/components/doughnut/Doughnut.vue';
 import ColumnChart from '@/components/column-chart/ColumnChart.vue';
 import SearchStock from '@/components/search-stock/SearchStock.vue';
+import StockAPI from '@/apis/StockAPI';
 export default {
   components: {
     Doughnut,
     SearchStock,
     ColumnChart
   },
+
   data() {
     return {
-      currentPeriod: '1W',
+      currentPeriod: 0,
       periods: [
         {
-          key: '1W',
+          key: 0,
           label: '1W',
         },
         {
-          key: '1M',
+          key: 1,
           label: '1M',
         },
         {
-          key: '6M',
+          key: 2,
           label: '6M',
         },
         {
-          key: '1Y',
+          key: 3,
           label: '1Y',
         },
       ],
+      asset: [],
+      historys: [],
     };
   },
+  watch: {
+    currentPeriod(newValue) {
+      this.getAssetHistoryByUser(newValue);
+    }
+  },
 
-  async mounted() {
-
+  mounted() {
+    this.getAssets();
+    this.getAssetHistoryByUser();
   },
 
   methods: {
 
-    depositAmount() {
+    /**
+     * Hàm cập nhật giá tiền mặt của người dùng khi người dùng nạp tiền vào tài khoản
+     * @returns {Promise<void>}
+     */
+    async depositAmount() {
+      try {
+        let user = this.$ms.cache.getCache("user");
+        await StockAPI.addCashByUser(user.user_id);
 
-      this.$store.commit("showToast", {
-        label: "Bạn đã nạp thành công 100 triệu vào tài khoản",
-        type: 'success'
-      });
+        this.$store.commit("showToast", {
+          label: "Bạn đã nạp thành công 100 triệu vào tài khoản",
+          type: 'success'
+        });
+      } catch (error) {
+        console.log(error);
+
+        this.$store.commit("showToast", {
+          label: "Nạp tiền không thành công. Vui lòng nạp lại.",
+          type: 'error'
+        });
+      }
+    },
+    /**
+     * Hàm getAssets:
+     * - Lấy user hiện tại đang login trong cache.
+     * - Nếu user có tồn tại (nghĩa là user đã login) thì lấy giá trị tài sản và tiền mặt của user.
+     * - Gán giá trị tài sản và tiền mặt vào mảng asset.
+     */
+    getAssets() {
+      // Lấy user hiện tại đang login trong cache
+      let user = this.$ms.cache.getCache("user");
+
+      // Nếu user có tồn tại (nghĩa là user đã login) thì lấy giá trị tài sản và tiền mặt của user
+      if (user) {
+        // Gán giá trị tài sản và tiền mặt vào mảng asset
+        this.asset = [user.stock_value, user.cash_value];
+      }
+    },
+    /**
+     * Hàm getAssetHistoryByUser:
+     * - Lấy user hiện tại đang login trong cache.
+     * - Nếu user có tồn tại (nghĩa là user đã login) thì lấy lịch sử tài sản và tiền mặt của user.
+     * - Gán giá trị lịch sử tài sản và tiền mặt vào mảng historys.
+     * @param currentPeriod 
+     */
+    async getAssetHistoryByUser(currentPeriod = 0) {
+      try {
+        // Lấy user hiện tại đang login trong cache
+        let user = this.$ms.cache.getCache("user");
+        if (user) {
+          const result = await StockAPI.getAssetHistoryByUser(
+            {
+              user_id: user.user_id,
+              periodEnum: currentPeriod
+            }
+          );
+          let cashValues = result.map(item => item.cash_value);
+          let stockValues = result.map(item => item.stock_value);
+          this.historys = [
+            {
+              name: 'Tiền',
+              data: [...cashValues]
+            },
+            {
+              name: 'Cổ phiếu ',
+              data: [...stockValues]
+
+            }
+          ];
+        }
+      } catch (error) {
+        console.log(error);
+      }
     }
   },
 };

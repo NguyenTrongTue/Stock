@@ -29,13 +29,13 @@ const routes = [
     name: "purchase",
     component: Purchase,
     path: "/purchase",
-    meta: { requiresAuth: false, title: "Đặt lệnh" },
+    meta: { requiresAuth: true, title: "Đặt lệnh" },
   },
    {
     name: "asset",
     component: Asset,
     path: "/asset",
-    meta: { requiresAuth: false, title: "Tài sản" },
+    meta: { requiresAuth: true, title: "Tài sản" },
   },
 ];
 

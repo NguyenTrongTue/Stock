@@ -6,6 +6,13 @@
 
 <script>
 export default {
+    props: {
+        dataProps: {
+            type: Array,
+            default: []
+        }
+    },
+
     data() {
         return {
             series: [
@@ -76,6 +83,22 @@ export default {
             }
         };
     },
+    
+    watch: {
+        dataProps: {
+            /**
+             * Hàm cập nhật giá trị của series.
+             * 
+             * @function
+             * @param {Array} dataProps - Mảng chứa các giá trị cho series.
+             *             
+             */
+            handler() {
+                this.series = this.dataProps;
+            },
+            deep: true
+        }
+    }
 
 };
 </script>

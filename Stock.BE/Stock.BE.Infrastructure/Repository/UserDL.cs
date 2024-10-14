@@ -15,11 +15,20 @@ public class UserDL : BaseRepository<UserEntity>, IUserDL
 
     public async Task<UserEntity> GetUserByEmailAsync(string email)
     {
-        var param = new DynamicParameters();
-        param.Add("@email", email);
-        var sql = @"select * from user d where email = @email;";
-        var result = await _uow.QueryDefault<UserEntity>(sql, param);
-        return result;
+        try
+        {
+            var param = new Dictionary<string, object>
+                {
+                    { $"@email", email }
+                };
+            var sql = @"select * from ""user"" d where email = @email;";
+            var result = await _uow.QueryDefault<UserEntity>(sql, param);
+            return result;
+        }
+        catch (Exception)
+        {
+            throw new Exception();
+        }
     }
 
     public Task UpdatePassWordAsync(byte[] passwordHash, byte[] passwordSalt, Guid user_id)
@@ -45,4 +54,5 @@ public class UserDL : BaseRepository<UserEntity>, IUserDL
         };
         await base.BaseInsertAsync(user, "user");
     }
+
 }

@@ -6,6 +6,12 @@
 
 <script>
 export default {
+    props: {
+        assetProps: {
+            type: Array,
+            default: []
+        }
+    },
     /**
      * Dữ liệu cho biểu đồ doughnut.
      *
@@ -18,12 +24,12 @@ export default {
      *   - responsive: Tùy chọn cho màn hình khác nhau.
      *       - breakpoint: Kích thước màn hình.
      *       - options: Các tùy chọn cho màn hình.
-     *           - chart: Tùy chọn cho bi  u đồ.
+     *           - chart: Tùy chọn cho biểu đồ.
      *           - legend: Tùy chọn cho legend.
      */
     data() {
         return {
-            series: [10.8, 15.3],
+            series: this.assetProps,
             chartOptions: {
                 chart: {
                     type: 'donut', // Đặt loại biểu đồ là 'donut'
@@ -46,7 +52,8 @@ export default {
                         // Custom tooltip value when hovering
                         formatter: function (val, opts) {
                             return val + ' triệu'; // Show 'triệu' after the value when hover
-                        }
+                        },
+
                     }
                 },
                 responsive: [
@@ -72,5 +79,20 @@ export default {
             }
         };
     },
+    watch: {
+        assetProps: {
+            handler(newValue) {
+                this.series = [...newValue]
+                ///.map(_ => this.$ms.common.formatAmount(_));
+            },
+            deep: true
+        }
+    },
+    mounted() {
+        console.log(this.assetProps);
+    },
+    methods: {
+
+    }
 };
 </script>

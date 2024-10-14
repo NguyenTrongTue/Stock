@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Stock.BE.Core.Model
+namespace Stock.BE.Core.Entity
 {
     /// <summary>
     /// Bảng chứa thông tin người dùng

@@ -2,6 +2,7 @@
 using Stock.BE.Core.DL;
 using Stock.BE.Core.DTO;
 using Stock.BE.Core.Enum;
+using Stock.BE.Core.Model;
 using Stock.BE.Infrastructure.Repository;
 
 namespace Stock.BE.Host.Controllers;
@@ -29,6 +30,12 @@ public class StocksController : ControllerBase
         var result = await _stockDL.GetStockByPeriodAsync(stockId, periodEnum);
         return Ok(result);
     }
+    [HttpGet("add_cash")]
+    public async Task<IActionResult> AddCashByUser(Guid userId)
+    {
+        await _stockDL.AddCashByUser(userId);
+        return Ok(1);
+    }
 
     [HttpGet("get_popular_stock")]
     public async Task<IActionResult> GetPopularStockAsync()
@@ -36,7 +43,13 @@ public class StocksController : ControllerBase
         var result = await _stockDL.GetPopularStockAsync();
         return Ok(result);
     }
-    
+    [HttpGet("get_asset_history_by_user")]
+    public async Task<IActionResult> GetAssetHistoryByUserAsync(Guid userId, PeriodEnum periodEnum)
+    {
+        var result = await _stockDL.GetAssetHistoryByUserAsync(userId, periodEnum);
+        return Ok(result);
+    }
+
 
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync(UserDto userDto)

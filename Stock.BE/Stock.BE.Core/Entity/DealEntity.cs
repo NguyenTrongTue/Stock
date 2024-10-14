@@ -45,12 +45,12 @@ public class DealEntity
     public decimal current_price { get; set; }
 
     /// <summary>
-    /// Giá trị chi phí
+    /// Giá trị gốc của chứng khoán = giá trị lúc khớp lệnh
     /// </summary>
     public decimal cost_value { get; set; }
 
     /// <summary>
-    /// Giá trị thị trường
+    /// Giá trị thị trường = current_price
     /// </summary>
     public decimal market_value { get; set; }
 

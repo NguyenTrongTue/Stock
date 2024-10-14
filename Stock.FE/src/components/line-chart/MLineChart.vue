@@ -111,7 +111,6 @@ export default {
           [new Date(item.modified_at), item.current_price.toFixed(2)],
         );
       }
-      debugger
     },
 
     handleChooseStock(stockId) {

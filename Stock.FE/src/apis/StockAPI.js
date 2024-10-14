@@ -17,8 +17,16 @@ class StockAPI extends BaseAPI {
   getStockByPeriod(payload) {
     return request.get(this.url + `/get_stock_by_period?stockId=${payload.stockId}&periodEnum=${payload.periodEnum}`);
   }
-   getPopularStock() {
+  getPopularStock() {
     return request.get(this.url + "/get_popular_stock");
+  }
+
+  addCashByUser(userId) {
+    return request.get(this.url + `/add_cash?userId=${userId}`);
+  }
+
+  getAssetHistoryByUser(payload) {
+    return request.get(this.url + `/get_asset_history_by_user?userId=${payload.userId}&periodEnum=${payload.periodEnum}`);
   }
 }
 

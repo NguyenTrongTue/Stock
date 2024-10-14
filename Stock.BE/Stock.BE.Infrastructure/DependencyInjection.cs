@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Stock.BE.Core.DL;
+using Stock.BE.Core.DL; 
 using Stock.BE.Infrastructure.Repository;
 using Stock.Infrastructure;
 namespace Stock.BE.Infrastructure;

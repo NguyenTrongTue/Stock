@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Stock.BE.Host.Middleware;
 using Stock.BE.Infrastructure;
+using Stock.BE.Jobs;
 namespace Stock.BE.Host;
 public class Program
 {
@@ -17,8 +18,8 @@ public class Program
         }));
         // Add services to the container.
         builder.Services.AddControllers();
-        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddJobs();
+        builder.Services.AddInfrastructure(builder.Configuration);
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();

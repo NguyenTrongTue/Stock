@@ -5,6 +5,7 @@ using Stock.BE.Core.Entity;
 using Stock.BE.Core.Enum;
 using Stock.BE.Core.Model;
 using Stock.BE.Infrastructure.Repository.Base;
+using System.Data;
 using static Dapper.SqlMapper;
 
 namespace Stock.BE.Infrastructure.Repository
@@ -130,13 +131,16 @@ namespace Stock.BE.Infrastructure.Repository
         /// <param name="userId">Id của người dùng</param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public async Task AddCashByUser(Guid userId, int amount)
+        public async Task AddCashByUser(Guid userId)
         {
-            var param = new DynamicParameters();
-            param.Add("@userId", userId);
-            param.Add("@amount", amount);
-            var sql = @"update user set cash_value = @amount where user_id = @userId";
-            await _uow.Connection.ExecuteAsync(sql, param);
+            var paramDictionary = new Dictionary<string, object>()
+            {
+                {"p_user_id", userId }
+            };
+            var param = new DynamicParameters(paramDictionary);
+            var sql = "select * from public.update_cash_value_by_user(@p_user_id)";
+            await _uow.Connection.ExecuteAsync(sql, param, commandType: CommandType.Text);
+
         }
         /// <summary>
         /// Đầu thêm các deal nắm giữ của người dùng
@@ -178,7 +182,42 @@ namespace Stock.BE.Infrastructure.Repository
                 matched_price = transactionsDto.matched_price,
                 volume = transactionsDto.volume,
             };
-             await base.BaseInsertAsync(transaction, "transactions");
+            await base.BaseInsertAsync(transaction, "transactions");
+        }
+
+        public async Task UpdateStockPriceChange()
+        {
+            var sql = "select * from public.calculate_stock_change();";
+            await _uow.Connection.ExecuteAsync(sql);
+        }
+
+
+        public async Task<List<TableAssetHistoryModel>> GetAssetHistoryByUserAsync(Guid userId, PeriodEnum periodEnum)
+        {
+            var paramDictionary = new Dictionary<string, object>()
+             {
+                 {"p_user_id", userId }
+             };
+            var param = new DynamicParameters(paramDictionary);
+            var sql = "";
+            switch (periodEnum)
+            {
+                case PeriodEnum.Week1:
+                    sql = "SELECT * FROM table_asset_history WHERE user_id = @p_user_id AND created_at BETWEEN NOW() - INTERVAL '1 week' AND NOW();";
+                    break;
+                case PeriodEnum.Month1:
+                    sql = "SELECT * FROM table_asset_history WHERE user_id = @p_user_id AND created_at BETWEEN NOW() - INTERVAL '1 month' AND NOW();";
+                    break;
+                case PeriodEnum.Month6:
+                    sql = "SELECT * FROM table_asset_history WHERE user_id = @p_user_id AND created_at BETWEEN NOW() - INTERVAL '6 month' AND NOW();";
+                    break;
+                default:
+                    sql = "SELECT * FROM table_asset_history WHERE user_id = @p_user_id AND created_at BETWEEN NOW() - INTERVAL '1 year' AND NOW();";
+                    break;
+            }
+            var result = await _uow.Connection.QueryAsync<TableAssetHistoryModel>(sql, param, commandType: CommandType.Text);
+
+            return result.ToList();
         }
     }
 }

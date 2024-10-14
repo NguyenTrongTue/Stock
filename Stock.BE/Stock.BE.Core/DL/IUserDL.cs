@@ -1,7 +1,6 @@
 ﻿using Stock.BE.Core.BaseDL.Repository;
 using Stock.BE.Core.DTO;
-using Stock.BE.Core.Model;
-using System;
+using Stock.BE.Core.Entity;
 
 namespace Stock.BE.Core.DL
 {

@@ -49,7 +49,8 @@ export default {
     async handleLogin() {
       try {
         this.$store.commit("showLoading");
-        await StockAPI.login(this.objectMaster);
+        var result = await StockAPI.login(this.objectMaster);
+        this.$ms.cache.setCache("user", result);
         this.$store.commit("showToast", {
           label: "Đăng nhập thành công.",
           type: 'success'
