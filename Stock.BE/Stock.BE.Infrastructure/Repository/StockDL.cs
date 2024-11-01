@@ -172,7 +172,7 @@ namespace Stock.BE.Infrastructure.Repository
         {
             var transaction = new TransactionsEntity
             {
-                transaction_id = Guid.NewGuid(),
+                transactions_id = Guid.NewGuid(),
                 stock_id = transactionsDto.stock_id,
                 user_id = transactionsDto.user_id,
                 stock_code = transactionsDto.stock_code,

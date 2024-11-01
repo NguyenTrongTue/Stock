@@ -13,7 +13,7 @@
       <div class="line_chart__bottom_item" @click="handleChooseStock(stock.stock_id)" v-for="stock in stocks"
         :key="stock.stock_id" :class="{ 'active': stock.stock_id == currentStock }">
         <div class="top">{{ stock.stock_code }}</div>
-        <div class="middle" :class="`${computedColor(stock.different)}`">
+        <div class="middle" :class="`${computedColor(stock.difference)}`">
           <div>{{ stock.total_volume }}</div>
           <div>{{ stock.change_price }}({{ stock.change_price_by_percent }}%)</div>
         </div>
@@ -80,7 +80,7 @@ export default {
           ...item,
           change_price_by_percent: (Math.random()).toFixed(2),
           change_price: (Math.random() * 10).toFixed(2),
-          different: Math.floor(Math.random() * 3),
+          difference: Math.floor(Math.random() * 3),
           total_assets: this.formatToBillion(item.total_assets),
           total_volume: this.formatAmount(item.total_volume),
         }
@@ -116,8 +116,8 @@ export default {
     handleChooseStock(stockId) {
       this.currentStock = stockId;
     },
-    computedColor(different) {
-      switch (different) {
+    computedColor(difference) {
+      switch (difference) {
         case 0:
           return 'green';
         case 1:

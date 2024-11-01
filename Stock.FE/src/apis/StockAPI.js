@@ -28,6 +28,10 @@ class StockAPI extends BaseAPI {
   getAssetHistoryByUser(payload) {
     return request.get(this.url + `/get_asset_history_by_user?userId=${payload.userId}&periodEnum=${payload.periodEnum}`);
   }
+
+  purchase(payload) {
+    return request.post(this.url + "/purchase", payload);
+  }
 }
 
 const instance = new StockAPI();

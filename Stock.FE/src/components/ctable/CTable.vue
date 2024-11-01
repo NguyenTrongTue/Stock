@@ -14,18 +14,27 @@
           </th>
         </tr>
       </thead>
-      <tbody class="tbody">
+      <!-- <tbody class="tbody">
         <tr v-for="(item, index) in datax" :key="index">
           <td v-for="(column, index) in columns" :key="index" :style="{
             'text-align': column.textAlign,
             width: column.width ? column.width + 'px' : null,
             minWidth: column.width ? column.width + 'px' : null,
           }" :ref="column.field" @click="handleClickRow(item)">
-            <span :class="`td__content ${computedColor(item.different, column)}`"> {{ formatData(column.type,
-            item[column.field], item.different)
+            <span :class="`td__content ${computedColor(item.difference, column)}`"> {{ formatData(column.type,
+              item[column.field], item.difference)
               }}</span>
           </td>
         </tr>
+      </tbody> -->
+      <tbody class="tbody">
+
+        <div class="no-data">
+          <!-- <div class="no-data-img"> -->
+          <img src="@/assets/img/no-data.png" alt="">
+          <!-- </div> -->
+          <!-- <span class="no-data-text">{{ noDataText }}</span> -->
+        </div>
       </tbody>
     </table>
   </div>
@@ -43,6 +52,11 @@ export default {
     datax: {
       type: Array,
       required: true,
+    },
+    noDataText: {
+      type: String,
+      required: false,
+      default: 'Không có dữ liệu',
     }
   },
   data() {
@@ -55,7 +69,7 @@ export default {
     handleClickRow(row) {
       this.$emit('clickRow', row)
     },
-    formatData(type, data, different = null) {
+    formatData(type, data, difference = null) {
       if (data == null) {
         return '-';
       }
@@ -64,11 +78,11 @@ export default {
           return data.toLocaleString('en-US');
         }
         case Enums.EnumColumnType.Percent: {
-          if (different !== null && different !== undefined) {
+          if (difference !== null && difference !== undefined) {
 
-            if (different == 0) {
+            if (difference == 0) {
               return `+${data}%`
-            } else if (different == 1) {
+            } else if (difference == 1) {
               return `-${data}%`
             } else {
               return `${data}%`
@@ -94,10 +108,10 @@ export default {
       return `${hours}:${minutes} ${day}/${month}/${year}`;
     },
 
-    computedColor(different, column) {
+    computedColor(difference, column) {
       if (column.isColor) {
 
-        switch (different) {
+        switch (difference) {
           case 0:
             return 'green';
           case 1:

@@ -139,14 +139,17 @@ export default {
       this.$refs.minput.focus();
     },
     handleDecrease() {
-      if ((this.currentValue - this.defaultChangeValue) <= 0) {
-        this.assignDataValue(0);
-      } else {
-        this.assignDataValue(+this.currentValue - this.defaultChangeValue);
+      let result = 0;
+      if ((this.currentValue - this.defaultChangeValue) > 0) {
+        result = +this.currentValue - this.defaultChangeValue;
       }
+      this.assignDataValue(result);
+      this.$emit("update:modelValue", result);
     },
     handleIncrease() {
       this.assignDataValue(+this.currentValue + this.defaultChangeValue);
+
+      this.$emit("update:modelValue", +this.currentValue + this.defaultChangeValue);
     },
     /**
      * Format lại giá trị hiển thị trong input theo định dạng.
@@ -172,6 +175,7 @@ export default {
      * Modified at (10/07/2023)
      */
     onInput(event) {
+      this.$emit("onInput", event.target.value);
       if (this.allowNumber) {
         const value = +event.target.value.split(".").join("");
         this.$emit("update:modelValue", value);
@@ -246,6 +250,14 @@ export default {
         this.validateData();
       }
     },
+    /**
+     * @description Set the error message for the input.
+     * @param {String} error The error message.
+     */
+    setError(error) {
+      this.error = error;
+
+    }
   },
 };
 </script>

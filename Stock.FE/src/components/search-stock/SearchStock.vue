@@ -5,11 +5,11 @@
     </div>
     <div class="home__right__bottom">
       <div class="home__right_title">
-       
+
         <span>Mã</span>
       </div>
       <div class="home__right_table">
-       
+
         <ctable :columns="columnConfigs.columns" :datax="columnConfigs.datax" />
       </div>
     </div>
@@ -47,13 +47,7 @@ export default {
   },
   async mounted() {
     let datas = await StockAPI.get();
-    let dataConvert = datas.map(stock => {
-      return {
-        ...stock,
-        different: Math.floor(Math.random() * 3),
-        change_price: Math.floor(Math.random() * 10),
-      }
-    });
+    let dataConvert = datas;
     this.columnConfigs.datax = [...dataConvert];
     this.orginalData = [...dataConvert];
   },

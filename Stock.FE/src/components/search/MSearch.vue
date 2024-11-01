@@ -46,6 +46,7 @@ export default {
      */
     onInput: debounce(function (e) {
       this.$emit("update:modelValue", e.target.value);
+      this.$emit("onInput", e.target.value);
     }, 500),
 
     /**

@@ -134,32 +134,3 @@ export const dealColumns = [
           isColor: true,
     },
 ];
-
-
-export const dealDatax = [   
-    {
-        stock_code: "BWE",
-        total_volume: 900,
-        total_tradeable_volume: 900,
-        cost_value: 28.043,
-        current_price: 20.90,
-        market_value: 531000,
-        profit_loss: 198128,
-        profit_loss_by_percent: 27.22,
-        different: 0
-    },
-];
-
-
-export const normalCommandDatax = [
-    {
-        command_type: "Mua",
-        stock_code: "BWE",
-        created_at: new Date(),
-        order_price: 1.25,
-        matched_price: null,
-        volume: 300,
-        transaction_type: 'Chờ gửi',
-        different: 0
-    },   
-];

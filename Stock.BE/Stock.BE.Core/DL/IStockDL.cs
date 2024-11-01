@@ -2,6 +2,7 @@
 using Stock.BE.Core.Entity;
 using Stock.BE.Core.Enum;
 using Stock.BE.Core.Model;
+using System.Threading.Tasks;
 
 namespace Stock.BE.Core.DL
 {
@@ -26,5 +27,13 @@ namespace Stock.BE.Core.DL
         Task AddCashByUser(Guid userId);
 
         Task<List<TableAssetHistoryModel>> GetAssetHistoryByUserAsync(Guid userId, PeriodEnum periodEnum);
+
+        /// <summary>
+        /// Hàm thêm mới giao dịch trên hệ thống khi người mua đặt lệnh mua hoặc bán
+        /// </summary>
+        /// <param name="transactionsDto">Giao dịch</param>
+        /// <returns></returns>
+        /// Created by: nttue - 12.10.2024
+        Task InsertTransaction(TransactionsDTO transactionsDto);
     }
 }

@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Stock.BE.Core;
 using Stock.BE.Core.DL;
 using Stock.BE.Core.DTO;
 using Stock.BE.Core.Enum;
-using Stock.BE.Core.Model;
-using Stock.BE.Infrastructure.Repository;
 
 namespace Stock.BE.Host.Controllers;
 
@@ -74,5 +73,13 @@ public class StocksController : ControllerBase
         }
 
         return Ok(user);
+    }
+
+
+    [HttpPost("purchase")]
+    public async Task<IActionResult> Purchase(TransactionsDTO transactionDto)
+    {
+        await _stockDL.InsertTransaction(transactionDto);
+        return Ok(1);
     }
 }

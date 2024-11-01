@@ -28,20 +28,46 @@ AS $function$
             max_price = case 
                 when t.operation = 1 then 
                     s.max_price + t.price_change 
-                else s.max_price - t.price_change end,
+                else 
+                    case 
+                        when s.max_price - t.price_change < 0 then s.max_price
+                        else s.max_price - t.price_change 
+                    end
+                end,
             min_price = case 
                 when t.operation = 1 then 
                     s.min_price + t.price_change 
-                else s.min_price - t.price_change end,
+                else 
+                    case 
+                        when s.min_price - t.price_change < 0 then s.min_price
+                        else s.min_price - t.price_change 
+                    end
+                 end,
             reference_price = case 
                 when t.operation = 1 then 
                     s.reference_price + t.price_change 
-                else s.reference_price - t.price_change end,
+                else 
+                    case 
+                        when s.reference_price - t.price_change < 0 then s.reference_price
+                        else s.reference_price - t.price_change 
+                    end
+                end,
             matched_price = case 
                 when t.operation = 1 then 
                     s.matched_price + t.price_change 
-                else s.matched_price - t.price_change end,
-            total_assets = s.matched_price * s.total_volume
+                else 
+                    case 
+                        when s.matched_price - t.price_change < 0 then s.matched_price
+                        else s.matched_price - t.price_change 
+                    end
+                end,
+            total_assets = s.matched_price * s.total_volume,
+            difference = case 
+                            when t.price_change > 0 and t.operation = 1 then 0
+                            when t.price_change > 0 and t.operation = 0 then 1
+                            else 2 
+                        end,
+            change_price = t.price_change
         from 
             temp_stock_change t
         where 
@@ -61,7 +87,7 @@ AS $function$
                 uuid_generate_v4(),
                 t.stock_id,
                 s.matched_price + 
-                    (CASE WHEN t.operation = 1 THEN t.price_change ELSE - t.price_change END),
+                    (CASE WHEN t.operation = 1 THEN t.price_change ELSE 0 END),
                 t.price_change,
                 t.price_change / s.matched_price,
                 now(),
