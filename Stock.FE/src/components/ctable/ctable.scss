@@ -58,12 +58,37 @@ tbody {
         background-color: rgba(52, 52, 52, 0.15);
     }
 
+    .td__content_wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
+        border-radius: 10px;
+
+        &.green {
+            background-color: #c3ffd4;
+
+            span {
+                color: #03c43a;
+            }
+        }
+
+        &.yellow {
+            background-color: rgb(250, 250, 149);
+
+            span {
+                color: rgb(179, 179, 0);
+            }
+        }
+    }
+
     .td__content {
+        font-weight: 500;
+        color: rgb(228, 228, 236);
 
         &.red,
         &.green,
         &.yellow {
-            font-weight: 500;
             font-size: 13px;
         }
 
@@ -79,9 +104,6 @@ tbody {
             color: rgb(255, 173, 13);
         }
 
-        &.white {
-            color: rgb(228, 228, 236);
-        }
     }
 }
 
@@ -89,14 +111,17 @@ tbody {
     display: flex;
     flex-direction: column;
     width: 100%;
-}
+    align-items: center;
+    margin-top: 100px;
 
-.no-data-img {
     img {
         width: 150px;
         height: 150px;
         object-fit: cover;
     }
-}
 
-.no-data-text {}
+    .no-data-text {
+        color: rgb(228, 228, 236);
+        margin-top: 12px;
+    }
+}

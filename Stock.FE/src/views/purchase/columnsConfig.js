@@ -2,13 +2,30 @@ import Enums from "@/resources/enumeration";
 
 export const normalCommandColumns = [
     {
-        field: "command_type",
+        field: "transaction_type",
         headerName: "Lệnh",
-        type: Enums.EnumColumnType.Text,
+        type: Enums.EnumColumnType.Enum,
+        enumName: 'TransactionType',
         textAlign: 'left',
         width: 50,
         minWidth: 100,
         isColor: true,
+        funcCusColor: (value, keyColor = null) => {
+            let key = (keyColor || keyColor === 0) ? keyColor : value;
+            let result = 'white';
+            switch (key) {
+                case 0:
+                    result = 'green';
+                    break;
+                case 1:
+                    result = 'red';
+                    break;
+                default:
+                    result = 'white';
+                    break;
+            }
+            return result;
+        },
     },
     {
         field: "stock_code",
@@ -17,7 +34,6 @@ export const normalCommandColumns = [
         textAlign: 'right',
         width: 60,
         minWidth: 60,
-        isColor: true,
     },
     {
         field: "created_at",
@@ -52,17 +68,27 @@ export const normalCommandColumns = [
         minWidth: 80,
     },
     {
-        field: "transaction_type",
+        field: "status",
         headerName: "Trạng thái",
-        type: Enums.EnumColumnType.Text,
+        type: Enums.EnumColumnType.Enum,
+        enumName: 'TransactionStatus',
         textAlign: 'right',
         width: 80,
         minWidth: 80,
+        functionCustomColorTD: (status) => {
+            switch (status) {
+                case 0:
+                    return 'yellow';
+                case 1:
+                    return 'green';
+
+            }
+        }
     },
 ];
 
 
-export const dealColumns = [   
+export const dealColumns = [
     {
         field: "stock_code",
         headerName: "Mã",
@@ -70,7 +96,6 @@ export const dealColumns = [
         textAlign: 'right',
         width: 60,
         minWidth: 60,
-        isColor: true,
     },
     {
         field: "total_volume",
@@ -79,7 +104,6 @@ export const dealColumns = [
         textAlign: 'right',
         width: 120,
         minWidth: 60,
-        isColor: true,
     },
     {
         field: "total_tradeable_volume",
@@ -114,23 +138,22 @@ export const dealColumns = [
         width: 80,
         minWidth: 80,
     },
-     
-      {
+
+    {
         field: "profit_loss",
         headerName: "Lãi chưa chốt",
         type: Enums.EnumColumnType.Number,
         textAlign: 'right',
         width: 80,
-          minWidth: 80,
-          isColor: true,
+        minWidth: 80,
+        isColor: true,
     },
-      {
+    {
         field: "profit_loss_by_percent",
         headerName: "% lãi",
         type: Enums.EnumColumnType.Percent,
         textAlign: 'right',
         width: 80,
-          minWidth: 80,
-          isColor: true,
+        minWidth: 80,
     },
 ];

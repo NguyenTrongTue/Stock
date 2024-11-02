@@ -32,6 +32,11 @@ class StockAPI extends BaseAPI {
   purchase(payload) {
     return request.post(this.url + "/purchase", payload);
   }
+
+  
+  getDealsAndTransactions(userId) {
+    return request.get(this.url + `/get_transaction?userId=${userId}`);
+  }
 }
 
 const instance = new StockAPI();

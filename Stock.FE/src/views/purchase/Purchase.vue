@@ -10,10 +10,8 @@
 
         </div>
         <div class="tab_content">
-          <ctable v-if="currentTab == 0" :columns="columnsConfigs.normalCommandColumns"
-            :datax="columnsConfigs.normalCommandDatax" />
-          <ctable v-else :columns="columnsConfigs.dealColumns" :datax="columnsConfigs.dealDatax"
-            @clickRow="handleChooseDeal" />
+          <ctable v-if="currentTab == 0" :columns="columnsConfigs.normalCommandColumns" :datax="dataTransactions" />
+          <ctable v-else :columns="columnsConfigs.dealColumns" :datax="dataDeals" @clickRow="handleChooseDeal" />
         </div>
       </div>
     </div>
@@ -156,6 +154,8 @@ export default {
       searchResult: [],
       asset: {},
       user: {},
+      dataDeals: [],
+      dataTransactions: []
     };
   },
 
@@ -163,6 +163,7 @@ export default {
     const me = this;
     await me.handleGetDataSearch();
     me.getAssets();
+    await me.getDealsAndTransactions();
   },
 
 
@@ -193,6 +194,17 @@ export default {
 
   },
   methods: {
+    async getDealsAndTransactions() {
+      const me = this;
+      try {
+        var result = await StockAPI.getDealsAndTransactions(me.user.user_id);
+        me.dataDeals = result.deals;
+        me.dataTransactions = result.transactions;
+      } catch (error) {
+        console.log(error);
+      }
+
+    },
     /**
      * Asynchronously handles the purchase operation.
      * - Validates that the volume is greater than 0 before proceeding.

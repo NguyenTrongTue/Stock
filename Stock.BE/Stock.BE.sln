@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.BE.Core", "Stock.BE.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.BE.Infrastructure", "Stock.BE.Infrastructure\Stock.BE.Infrastructure.csproj", "{B09595AB-6755-4231-84F5-E682495E259A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock.BE.Jobs", "Stock.BE.Jobs\Stock.BE.Jobs.csproj", "{ADCFC47A-1015-4EDB-A409-C3482F701CBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.BE.Jobs", "Stock.BE.Jobs\Stock.BE.Jobs.csproj", "{ADCFC47A-1015-4EDB-A409-C3482F701CBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

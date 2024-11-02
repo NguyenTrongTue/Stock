@@ -1,11 +1,11 @@
 import { createI18n } from "vue-i18n";
 import Common from "./vi/i18nCommon";
-import i18nBooking from "./vi/i18nBooking";
+import i18nEnum from "./vi/i18nEnum";
 
 const messages = {
   vi: {
     ...Common,
-    i18nBooking: { ...i18nBooking },
+    i18nEnum: { ...i18nEnum },
   },
 };
 const i18n = createI18n({

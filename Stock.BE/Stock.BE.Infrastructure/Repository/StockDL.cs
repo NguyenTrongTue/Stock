@@ -219,5 +219,11 @@ namespace Stock.BE.Infrastructure.Repository
 
             return result.ToList();
         }
+
+        public async Task BuySellStockAsync()
+        {
+            var sql = "select * from public.buy_sell_stock();";
+            await _uow.Connection.ExecuteAsync(sql);
+        }
     }
 }

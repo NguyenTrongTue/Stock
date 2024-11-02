@@ -82,4 +82,17 @@ public class StocksController : ControllerBase
         await _stockDL.InsertTransaction(transactionDto);
         return Ok(1);
     }
+
+
+    [HttpGet("get_transaction")]
+    public async Task<IActionResult> GetTransactionsByUserIdAsync(Guid userId)
+    {
+        var transactions = await _stockDL.GetTransactionsByUserAsync(userId);
+        var deals = await _stockDL.GetDealsByUserAsync(userId);
+        return Ok(new
+        {
+            transactions,
+            deals
+        });
+    }
 }
