@@ -34,10 +34,12 @@ namespace Stock.BE.Core.DL
         /// <param name="transactionsDto">Giao dịch</param>
         /// <returns></returns>
         /// Created by: nttue - 12.10.2024
-        Task InsertTransaction(TransactionsDTO transactionsDto);        
+        Task<AddTransactionResult> InsertTransaction(TransactionsDTO transactionsDto);        
         Task<object> GetTransactionsByUserAsync(Guid userId);
         Task<object> GetDealsByUserAsync(Guid userId);
 
         Task BuySellStockAsync();
+
+        Task<object?> GetAssetDashboard(Guid userId);
     }
 }

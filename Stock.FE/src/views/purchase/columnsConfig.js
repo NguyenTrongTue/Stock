@@ -9,7 +9,6 @@ export const normalCommandColumns = [
         textAlign: 'left',
         width: 50,
         minWidth: 100,
-        isColor: true,
         funcCusColor: (value, keyColor = null) => {
             let key = (keyColor || keyColor === 0) ? keyColor : value;
             let result = 'white';
@@ -93,34 +92,56 @@ export const dealColumns = [
         field: "stock_code",
         headerName: "Mã",
         type: Enums.EnumColumnType.Text,
-        textAlign: 'right',
+        textAlign: 'left',
         width: 60,
         minWidth: 60,
+        keyColor: 'difference',
+        funcCusColor: (value, keyColor = null) => {
+            let key = (keyColor || keyColor === 0) ? keyColor : value;
+            let result = 'white';
+            switch (key) {
+                case 0:
+                    result = 'green';
+                    break;
+                case 1:
+                    result = 'red';
+                    break;
+                case 2:
+                    result = 'yellow';
+                    break;
+                default:
+                    result = 'white';
+                    break;
+            }
+            return result;
+        },
     },
     {
         field: "total_volume",
-        headerName: "Khối lượng mở",
-        type: Enums.EnumColumnType.Text,
+        headerName: "KL mở",
+        type: Enums.EnumColumnType.Number,
         textAlign: 'right',
-        width: 120,
+        width: 80,
         minWidth: 60,
     },
     {
         field: "total_tradeable_volume",
-        headerName: "Được giao dịch",
-        type: Enums.EnumColumnType.Text,
+        headerName: "Được GD",
+        type: Enums.EnumColumnType.Number,
         textAlign: 'right',
         width: 80,
         minWidth: 80,
     },
+
     {
-        field: "cost_value",
-        headerName: "Giá hòa vốn",
-        type: Enums.EnumColumnType.Text,
+        field: "matched_price",
+        headerName: "Giá GD",
+        type: Enums.EnumColumnType.Number,
         textAlign: 'right',
         width: 80,
         minWidth: 80,
     },
+
     {
         field: "current_price",
         headerName: "Giá hiện tại",
@@ -128,11 +149,30 @@ export const dealColumns = [
         textAlign: 'right',
         width: 80,
         minWidth: 80,
-        isColor: true,
+        keyColor: 'difference',
+        funcCusColor: (value, keyColor = null) => {
+            let key = (keyColor || keyColor === 0) ? keyColor : value;
+            let result = 'white';
+            switch (key) {
+                case 0:
+                    result = 'green';
+                    break;
+                case 1:
+                    result = 'red';
+                    break;
+                case 2:
+                    result = 'yellow';
+                    break;
+                default:
+                    result = 'white';
+                    break;
+            }
+            return result;
+        },
     },
     {
-        field: "market_value",
-        headerName: "Giá trị hiện tại",
+        field: "cost_value",
+        headerName: "GT hiện tại",
         type: Enums.EnumColumnType.Number,
         textAlign: 'right',
         width: 80,
@@ -146,7 +186,23 @@ export const dealColumns = [
         textAlign: 'right',
         width: 80,
         minWidth: 80,
-        isColor: true,
+        keyColor: 'is_profit',
+        funcCusColor: (value, keyColor = null) => {
+            let key = (keyColor || keyColor === 0) ? keyColor : value;
+            let result = 'white';
+            switch (key) {
+                case 0:
+                    result = 'green';
+                    break;
+                case 1:
+                    result = 'red';
+                    break;
+                default:
+                    result = 'white';
+                    break;
+            }
+            return result;
+        },
     },
     {
         field: "profit_loss_by_percent",
@@ -155,5 +211,22 @@ export const dealColumns = [
         textAlign: 'right',
         width: 80,
         minWidth: 80,
+        keyColor: 'is_profit',
+        funcCusColor: (value, keyColor = null) => {
+            let key = (keyColor || keyColor === 0) ? keyColor : value;
+            let result = 'white';
+            switch (key) {
+                case 0:
+                    result = 'green';
+                    break;
+                case 1:
+                    result = 'red';
+                    break;
+                default:
+                    result = 'white';
+                    break;
+            }
+            return result;
+        },
     },
 ];

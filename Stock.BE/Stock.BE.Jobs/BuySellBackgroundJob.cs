@@ -14,7 +14,8 @@ namespace Stock.BE.Jobs
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            //Console.WriteLine("Test 123");
+            
+            //await _stockDL.BuySellStockAsync();
         }
     }
 }

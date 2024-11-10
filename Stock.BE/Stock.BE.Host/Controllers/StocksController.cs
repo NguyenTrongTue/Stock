@@ -29,6 +29,14 @@ public class StocksController : ControllerBase
         var result = await _stockDL.GetStockByPeriodAsync(stockId, periodEnum);
         return Ok(result);
     }
+
+    [HttpGet("get_stock_by_id")]
+    public async Task<IActionResult> GetStockByIdAsync(Guid stockId)
+    {
+        var result = await _stockDL.GetByIdAsync(stockId);
+        return Ok(result);
+    }
+
     [HttpGet("add_cash")]
     public async Task<IActionResult> AddCashByUser(Guid userId)
     {
@@ -79,8 +87,8 @@ public class StocksController : ControllerBase
     [HttpPost("purchase")]
     public async Task<IActionResult> Purchase(TransactionsDTO transactionDto)
     {
-        await _stockDL.InsertTransaction(transactionDto);
-        return Ok(1);
+        var result = await _stockDL.InsertTransaction(transactionDto);
+        return Ok(result);
     }
 
 
@@ -94,5 +102,12 @@ public class StocksController : ControllerBase
             transactions,
             deals
         });
+    }
+
+    [HttpGet("get_asset_dashboard")]
+    public async Task<IActionResult> GetAssetDashboard(Guid userId)
+    {
+        var result = await _stockDL.GetAssetDashboard(userId);
+        return Ok(result);
     }
 }

@@ -5,7 +5,7 @@
         <div class="title">ĐĂNG NHẬP</div>
         <div class="sub_title">
           <span class="no__account">Bạn chưa có tài khoản</span>
-          <span class="login__text" @click="handleDirectSignup">Đăng nhập</span>
+          <span class="login__text" @click="handleDirectSignup">Đăng ký</span>
         </div>
 
       </div>

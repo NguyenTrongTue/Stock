@@ -34,10 +34,10 @@ export default {
                 chart: {
                     type: 'donut', // Đặt loại biểu đồ là 'donut'
                 },
-                labels: ['Tiền', 'Cổ phiếu'], // Nhãn cho các phần của biểu đồ
+                labels: ['Cổ phiếu', 'Tiền'], // Nhãn cho các phần của biểu đồ
                 legend: {
                     formatter: function (val, opts) {
-                        return `<span class="legend-text-wrapper"><span class="legend-text">${val}</span><span>` + " " + opts.w.globals.series[opts.seriesIndex] + ' triệu';
+                        return `<span class="legend-text-wrapper"><span class="legend-text">${val}</span><span>` + " " + (opts.w.globals.series[opts.seriesIndex] / 1000000).toFixed(2) + ' triệu';
                     },
                     fontSize: '16px', // Tùy chỉnh kích thước font chữ
                     fontWeight: 600, // Độ dày font chữ                    
@@ -51,7 +51,7 @@ export default {
                     y: {
                         // Custom tooltip value when hovering
                         formatter: function (val, opts) {
-                            return val + ' triệu'; // Show 'triệu' after the value when hover
+                            return val % 1000000 == 0 ? val / 1000000 + "M" : (val / 1000000).toFixed(2) + "M";
                         },
 
                     }

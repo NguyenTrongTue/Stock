@@ -16,5 +16,6 @@ public class LoggingBackgroundJob : IJob
     public async Task Execute(IJobExecutionContext context)
     {
         await _stockDL.UpdateStockPriceChange();
+        
     }
 }

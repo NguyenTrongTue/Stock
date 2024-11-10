@@ -131,6 +131,7 @@ AS $function$
             u.user_id = v.user_id;
 
         INSERT INTO public.table_asset_history (
+            table_asset_history_id,
             user_id, 
             total_net_assets, 
             stock_value, 
@@ -138,6 +139,7 @@ AS $function$
             created_at    
         )
         SELECT 
+            uuid_generate_v4(),
             u.user_id, 
             u.total_net_assets + v.total_change, 
             u.stock_value + v.total_change, 

@@ -112,7 +112,7 @@
             </div>
             <div class="sell" @click="handleSell">
               <div class="title">BÁN</div>
-              <div>{{ objectMaster.purchasing_ability }}</div>
+              <div>{{ objectMaster.sell_ability }}</div>
             </div>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default {
     return {
       objectMaster: {
         buying_ability: 0,
-        purchasing_ability: 0,
+        sell_ability: 0,
         order_price: 0,
         volume: 0
       },
@@ -161,9 +161,17 @@ export default {
 
   async mounted() {
     const me = this;
-    await me.handleGetDataSearch();
-    me.getAssets();
-    await me.getDealsAndTransactions();
+    try {
+      this.$store.commit("showLoading");
+
+      await me.handleGetDataSearch();
+      me.getAssets();
+      await me.getDealsAndTransactions();
+      this.$store.commit("hideLoading");
+    } catch (error) {
+      console.log(error);
+      this.$store.commit("hideLoading");
+    }
   },
 
 
@@ -184,8 +192,8 @@ export default {
       console.log(volume);
       if (volume <= 0) {
         me.$refs.volume.setError('Khối lượng đặt phải lớn hơn 0.');
-      } else if (volume > me.objectMaster.buying_ability) {
-        me.$refs.volume.setError('Khối lượng đặt vượt quá số tiền hiện có.');
+      } else if (volume > me.objectMaster.buying_ability || volume > me.currentStock.volume) {
+        me.$refs.volume.setError('Khối lượng đặt vượt quá số biên cho phép.');
       } else {
         me.$refs.volume.setError('');
       }
@@ -227,16 +235,18 @@ export default {
           stock_id: me.currentStock.stock_id,
           user_id: me.user.user_id,
           stock_code: me.currentStock.stock_code,
-          transaction_type: 1,
+          transaction_type: 0,
           order_price: me.objectMaster.order_price,
           matched_price: me.currentStock.matched_price,
           volume: me.objectMaster.volume,
-          status: 3,
+          status: 0,
+          creeated_at: new Date(),
           modified_at: new Date()
         }
-
+        me.$store.commit("showLoading");
         var result = await StockAPI.purchase(payload);
-
+        me.$store.commit("hideLoading");
+        me.alterBuyStock(payload);
         if (result) {
           this.$store.commit("showToast", {
             label: "Đặt lệnh mua thành công",
@@ -249,12 +259,63 @@ export default {
           label: "Đặt lệnh mua thất bại",
           type: 'error'
         });
-
+        me.$store.commit("hideLoading");
       }
-    }
-    ,
-    handleSell() { }
-    ,
+    },
+    alterBuyStock() {
+      const me = this;
+      me.getDealsAndTransactions();
+
+    },
+    async handleSell() {
+      const me = this;
+      try {
+        if (me.objectMaster.volume == 0) {
+          this.$store.commit("showToast", {
+            label: "Khối lượng đặt phải lớn hơn 0.",
+            type: 'error'
+          });
+        }
+
+        const payload = {
+          stock_id: me.currentStock.stock_id,
+          user_id: me.user.user_id,
+          stock_code: me.currentStock.stock_code,
+          transaction_type: 1,
+          order_price: me.objectMaster.order_price,
+          matched_price: me.currentStock.matched_price,
+          volume: me.objectMaster.volume,
+          status: 0,
+          creeated_at: new Date(),
+          modified_at: new Date()
+        }
+        me.$store.commit("showLoading");
+        var result = await StockAPI.purchase(payload);
+        me.$store.commit("hideLoading");
+        if (!result.success) {
+          this.$store.commit("showToast", {
+            label: result.message,
+            type: 'error'
+          });
+        } else {
+
+          me.alterBuyStock(payload);
+          if (result) {
+            this.$store.commit("showToast", {
+              label: "Đặt lệnh bán thành công",
+              type: 'success'
+            });
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        this.$store.commit("showToast", {
+          label: "Đặt lệnh bán thất bại",
+          type: 'error'
+        });
+        me.$store.commit("hideLoading");
+      }
+    },
     handleSearchStock(key) {
       const me = this;
       me.showSearchResult = true;
@@ -281,10 +342,32 @@ export default {
         me.objectMaster.buying_ability = (user.cash_value / stock.reference_price / 1000).toFixed(0);
       }
     },
-    handleChooseDeal(deal) {
+    async handleChooseDeal(deal) {
       const me = this;
-      me.objectMaster.buying_ability = deal.total_tradeable_volume;
-      me.objectMaster.purchasing_ability = Math.floor(me.asset.cash / deal.current_price).toLocaleString('en-US');
+      try {
+        me.$store.commit("showLoading");
+        var stock = await StockAPI.getStockByIdAsync(deal.stock_id);
+
+        me.currentStock = {
+          ...stock,
+          volume: deal.total_volume
+        };
+
+        me.search = stock.stock_code;
+        me.objectMaster.order_price = stock.matched_price;
+        me.objectMaster.sell_ability = deal.total_tradeable_volume;
+
+        me.objectMaster.volume = stock.tradable_volume;
+        me.currentStock.percent = `${stock.difference === 1 ? '-' :
+          stock.difference === 0 ? '+' :
+            ''}${((stock.change_price / stock.matched_price) * 100).toFixed(2)}%`
+
+        me.$store.commit("hideLoading");
+      } catch (error) {
+        console.log(error);
+        me.$store.commit("hideLoading");
+      }
+
     },
     async handleGetDataSearch() {
       const me = this;

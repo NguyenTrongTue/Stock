@@ -1,25 +1,12 @@
 <template>
   <div class="login">
-    <!-- <div class="login__right">
-      <div class="login__right__background">
-        <micon type="Background" />
-      </div>
-      <div class="login__right__content">
-        <micon type="Quote" />
-        <span>"It's not whether you're right or wrong that's important, but how much money you make when you're right
-          and how much you lose when you're wrong."</span>
-        <div class="horizontal">
-        </div>
-        <div class="author">
-          George Soros</div>
-      </div>
-    </div> -->
+
     <div class="login__left">
       <div class="login__left__top">
         <div class="title">ĐĂNG KÝ</div>
         <div class="sub_title">
           <span class="no__account">Trải nghiệm khi chưa có tài khoản?</span>
-          <span class="login__text" @click="handleDirectLogin">Đăng ký ngay</span>
+          <span class="login__text" @click="handleDirectLogin">Đăng nhập ngay</span>
         </div>
 
       </div>
@@ -35,7 +22,7 @@
 
       </div>
       <div class="login__bottom__bottom">
-        <mbutton buttonText="Đăng nhập" @click="handleSignup" />
+        <mbutton buttonText="Đăng ký" @click="handleSignup" />
       </div>
     </div>
   </div>
@@ -70,7 +57,9 @@ export default {
           type: 'success'
         });
         this.$store.commit("hideLoading")
-
+        this.$router.push({
+          path: "/login",
+        });
       } catch (error) {
         console.log(error);
         this.$store.commit("showToast", {

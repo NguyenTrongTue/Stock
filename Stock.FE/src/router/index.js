@@ -11,7 +11,7 @@ const routes = [
     name: "home",
     component: Home,
     path: "/",
-    meta: { requiresAuth: false, title: "Trang chủ" },
+    meta: { requiresAuth: true, title: "Trang chủ" },
   },
   {
     name: "login",
@@ -25,13 +25,13 @@ const routes = [
     path: "/signup",
     meta: { requiresAuth: false, title: "Đăng ký" },
   },
-   {
+  {
     name: "purchase",
     component: Purchase,
     path: "/purchase",
     meta: { requiresAuth: true, title: "Đặt lệnh" },
   },
-   {
+  {
     name: "asset",
     component: Asset,
     path: "/asset",

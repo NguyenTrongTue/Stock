@@ -8,28 +8,29 @@
 export default {
     props: {
         dataProps: {
-            type: Array,
+            type: Object,
             default: []
         }
     },
 
     data() {
         return {
-            series: [
-                {
-                    name: 'Tiền',
-                    data: [44, 55, 41, 67, 22, 43, 21, 49]
-                },
-                {
-                    name: 'Cổ phiếu ',
-                    data: [13, 23, 20, 8, 13, 27, 33, 12]
-                },
-            ],
+            series: [],
             chartOptions: {
                 chart: {
                     type: 'bar',
                     height: 450,
                     stacked: true,
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val % 1000000 == 0 ? val / 1000000 + "M" : (val / 1000000).toFixed(2) + "M";
+                    },
+                    style: {
+                        fontSize: '12px',
+                        colors: ["white"]
+                    }
                 },
                 responsive: [
                     {
@@ -44,26 +45,17 @@ export default {
                     }
                 ],
                 xaxis: {
-                    categories: [
-                        '2011',
-                        '2011',
-                        '2011',
-                        '2011',
-                        '2012',
-                        '2012',
-                        '2012',
-                        '2012'
-                    ],
+                    categories: [],
                     style: {
-                        colors: ['#85868a'], // Đổi màu chữ nhãn trục Y
-                        fontSize: '14px', // Thay đổi kích thước font chữ
-                        fontWeight: 600 // Độ dày của font chữ
+                        colors: ['#85868a'],
+                        fontSize: '14px',
+                        fontWeight: 700
                     }
                 },
                 yaxis: {
                     labels: {
                         formatter: function (value) {
-                            return value + " M"; // Thêm text sau giá trị trục Y
+                            return value / 1000000 + " M"; // Thêm text sau giá trị trục Y
                         },
                         style: {
                             colors: ['#85868a'], // Đổi màu chữ nhãn trục Y
@@ -83,18 +75,24 @@ export default {
             }
         };
     },
-    
     watch: {
         dataProps: {
-            /**
-             * Hàm cập nhật giá trị của series.
-             * 
-             * @function
-             * @param {Array} dataProps - Mảng chứa các giá trị cho series.
-             *             
-             */
-            handler() {
-                this.series = this.dataProps;
+
+            handler(newValue) {
+                const me = this;
+                if (newValue) {
+                    me.series = newValue.data;
+                    let xaxisLabels = newValue.originData.map(_ => _.created_at.split("T")[0]);
+
+
+                    this.chartOptions = {
+                        ...this.chartOptions,
+                        xaxis: {
+                            ...this.chartOptions.xaxis,
+                            categories: xaxisLabels
+                        }
+                    };
+                }
             },
             deep: true
         }

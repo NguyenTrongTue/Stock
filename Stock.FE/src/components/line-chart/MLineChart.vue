@@ -81,7 +81,7 @@ export default {
           change_price_by_percent: (Math.random()).toFixed(2),
           change_price: (Math.random() * 10).toFixed(2),
           difference: Math.floor(Math.random() * 3),
-          total_assets: this.formatToBillion(item.total_assets),
+          total_assets: this.formatToBillion(item.total_assets * 1000),
           total_volume: this.formatAmount(item.total_volume),
         }
       });
@@ -108,7 +108,7 @@ export default {
       if (result.length > 0) {
 
         this.series[0].data = result.map(item =>
-          [new Date(item.modified_at), item.current_price.toFixed(2)],
+          [new Date(item.created_at), item.current_price.toFixed(2)],
         );
       }
     },

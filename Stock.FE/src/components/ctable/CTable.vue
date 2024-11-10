@@ -87,17 +87,7 @@ export default {
           return data.toLocaleString('en-US');
         }
         case Enums.EnumColumnType.Percent: {
-          if (difference !== null && difference !== undefined) {
-
-            if (difference == 0) {
-              return `+${data}%`
-            } else if (difference == 1) {
-              return `-${data}%`
-            } else {
-              return `${data}%`
-            }
-          }
-          break;
+          return `${data.toFixed(2)} %`;
         }
         case Enums.EnumColumnType.Time: {
           return this.formatDate(new Date(data));
@@ -121,7 +111,7 @@ export default {
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear().toString();
 
-      return `${minutes}:${hours} ${day}/${month}/${year}`;
+      return `${hours}:${minutes} ${day}/${month}/${year}`;
     },
   },
 };
