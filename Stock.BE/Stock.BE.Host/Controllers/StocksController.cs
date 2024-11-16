@@ -23,12 +23,7 @@ public class StocksController : ControllerBase
         var result = await _stockDL.GetAllAsync();
         return Ok(result);
     }
-    [HttpGet("get_stock_by_period")]
-    public async Task<IActionResult> GetStockByPeriodAsync(Guid stockId, PeriodEnum periodEnum)
-    {
-        var result = await _stockDL.GetStockByPeriodAsync(stockId, periodEnum);
-        return Ok(result);
-    }
+   
 
     [HttpGet("get_stock_by_id")]
     public async Task<IActionResult> GetStockByIdAsync(Guid stockId)
@@ -44,12 +39,7 @@ public class StocksController : ControllerBase
         return Ok(1);
     }
 
-    [HttpGet("get_popular_stock")]
-    public async Task<IActionResult> GetPopularStockAsync()
-    {
-        var result = await _stockDL.GetPopularStockAsync();
-        return Ok(result);
-    }
+  
     [HttpGet("get_asset_history_by_user")]
     public async Task<IActionResult> GetAssetHistoryByUserAsync(Guid userId, PeriodEnum periodEnum)
     {

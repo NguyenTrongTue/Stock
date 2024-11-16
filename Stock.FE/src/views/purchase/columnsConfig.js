@@ -45,7 +45,7 @@ export const normalCommandColumns = [
     {
         field: "order_price",
         headerName: "Giá đặt",
-        type: Enums.EnumColumnType.Text,
+        type: Enums.EnumColumnType.Decimal,
         textAlign: 'right',
         width: 80,
         minWidth: 80,
@@ -53,7 +53,7 @@ export const normalCommandColumns = [
     {
         field: "matched_price",
         headerName: "Giá khớp",
-        type: Enums.EnumColumnType.Text,
+        type: Enums.EnumColumnType.Decimal,
         textAlign: 'right',
         width: 80,
         minWidth: 80,
@@ -136,7 +136,7 @@ export const dealColumns = [
     {
         field: "matched_price",
         headerName: "Giá GD",
-        type: Enums.EnumColumnType.Number,
+        type: Enums.EnumColumnType.Decimal,
         textAlign: 'right',
         width: 80,
         minWidth: 80,
@@ -145,7 +145,7 @@ export const dealColumns = [
     {
         field: "current_price",
         headerName: "Giá hiện tại",
-        type: Enums.EnumColumnType.Text,
+        type: Enums.EnumColumnType.Decimal,
         textAlign: 'right',
         width: 80,
         minWidth: 80,

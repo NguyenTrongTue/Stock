@@ -10,14 +10,17 @@
       </apexchart>
     </div>
     <div class="line_chart__bottom">
-      <div class="line_chart__bottom_item" @click="handleChooseStock(stock.stock_id)" v-for="stock in stocks"
-        :key="stock.stock_id" :class="{ 'active': stock.stock_id == currentStock }">
-        <div class="top">{{ stock.stock_code }}</div>
-        <div class="middle" :class="`${computedColor(stock.difference)}`">
-          <div>{{ stock.total_volume }}</div>
-          <div>{{ stock.change_price }}({{ stock.change_price_by_percent }}%)</div>
+      <div class="line_chart__bottom_item" @click="handleChooseStock(stock.IndexId)" v-for="stock in stocks"
+        :key="stock.IndexId" :class="{ 'active': stock.IndexId == currentStock }">
+        <div class="top">
+          <div class="dot" :class="`${computedColor(stock.Change)}`" v-if="stock.IndexId == currentStock"></div>
+          <span>{{ stock.IndexName }}</span>
         </div>
-        <div class="bottom">{{ stock.total_assets }}</div>
+        <div class="middle" :class="`${computedColor(stock.Change)}`">
+          <div>{{ stock.IndexValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',') }}</div>
+          <div>{{ stock.Change }}({{ Number(stock.RatioChange).toFixed(2) }}%)</div>
+        </div>
+        <div class="bottom">{{ formatToBillion(stock.TotalVal).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }}</div>
       </div>
 
     </div>
@@ -27,7 +30,7 @@
 
 <script>
 import { configOptions } from './chartConfig.js';
-import StockAPI from '@/apis/StockAPI.js';
+import MarketAPI from '@/apis/MarketAPI.js';
 
 export default {
   name: 'MLineChart',
@@ -47,15 +50,7 @@ export default {
         {
           key: 1,
           label: '1M',
-        },
-        {
-          key: 2,
-          label: '6M',
-        },
-        {
-          key: 3,
-          label: '1Y',
-        },
+        }
       ],
       currentStock: '',
       stocks: [
@@ -74,58 +69,77 @@ export default {
   methods: {
 
     async getPopularStock() {
-      let result = await StockAPI.getPopularStock();
-      this.stocks = result.map(item => {
-        return {
-          ...item,
-          change_price_by_percent: (Math.random()).toFixed(2),
-          change_price: (Math.random() * 10).toFixed(2),
-          difference: Math.floor(Math.random() * 3),
-          total_assets: this.formatToBillion(item.total_assets * 1000),
-          total_volume: this.formatAmount(item.total_volume),
-        }
-      });
-      this.currentStock = this.stocks[0].stock_id;
+      const me = this;
+      try {
+        me.$store.commit("showLoading");
+        let result = await MarketAPI.getPopularStock();
+        me.$store.commit("hideLoading");
+        me.stocks = result.map(item => {
+          let stock = JSON.parse(item).data[0]
+          return {
+            ...stock,
 
+          }
+        });
+        me.currentStock = me.stocks[0].IndexId;
+
+      } catch (error) {
+        console.log(error);
+        me.$store.commit("hideLoading");
+      }
     },
 
     formatToBillion(num) {
       let billion = (num / 1_000_000_000).toFixed(2);
       return `${billion} tỉ`;
     },
-    formatAmount(amount) {
-      if (amount) {
-        let formattedAmount = amount
-          .toString()
-          .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        return formattedAmount;
-      } else {
-        return "";
-      }
-    },
     async getData() {
-      let result = await StockAPI.getStockByPeriod({ stockId: this.currentStock, periodEnum: this.currentPeriod });
-      if (result.length > 0) {
+      const context = this;
+      try {
+        context.$store.commit("showLoading");
 
-        this.series[0].data = result.map(item =>
-          [new Date(item.created_at), item.current_price.toFixed(2)],
-        );
+        const response = await MarketAPI.getStockByPeriod({
+          indexId: context.currentStock,
+          periodEnum: context.currentPeriod
+        });
+
+        context.$store.commit("hideLoading");
+        if (response.data.length > 0) {
+          context.series[0].data = response.data.map(item => [
+            new Date(item.TradingDate.split('/').reverse().join('-')),
+            item.IndexValue
+          ]);
+
+          const lastChange = response.data[response.data.length - 1].Change;
+          let color = '#ffad0d';
+
+          if (lastChange > 0) {
+            color = '#34c85e';
+          } else if (lastChange < 0) {
+            color = '#ff4242';
+          }
+
+          context.chartOptions = {
+            ...context.chartOptions,
+            colors: [color],
+          };
+        }
+      } catch (error) {
+        console.error(error);
+        context.$store.commit("hideLoading");
       }
     },
 
     handleChooseStock(stockId) {
       this.currentStock = stockId;
     },
-    computedColor(difference) {
-      switch (difference) {
-        case 0:
-          return 'green';
-        case 1:
-          return 'red';
-        case 2:
-          return 'yellow';
-        default:
-          break;
+    computedColor(value) {
+      if (value > 0) {
+        return 'green';
+      } else if (value < 0) {
+        return 'red';
+      } else {
+        return 'yellow';
       }
 
     }

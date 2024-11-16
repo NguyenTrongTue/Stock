@@ -321,14 +321,14 @@ export default {
       me.showSearchResult = true;
       if (key) {
         me.searchResult = me.dataSearchs.filter(item => {
-          return item.stock_code.includes(key);
-        })
+          return item.stock_code.toLowerCase().includes(key.toLowerCase());
+        }).sort((a, b) => a.stock_code.localeCompare(b.stock_code));
       } else {
         me.searchResult = me.dataSearchs.map(item => {
           return {
             ...item
           }
-        })
+        }).sort((a, b) => a.stock_code.localeCompare(b.stock_code));
       }
     },
     handleChooseSearch(stock) {

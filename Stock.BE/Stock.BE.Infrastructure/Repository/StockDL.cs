@@ -7,7 +7,9 @@ using Stock.BE.Core.Enum;
 using Stock.BE.Core.Model;
 using Stock.BE.Infrastructure.Repository.Base;
 using System.Data;
+using System.Runtime.InteropServices;
 using static Dapper.SqlMapper;
+using static Npgsql.Replication.PgOutput.Messages.RelationMessage;
 
 namespace Stock.BE.Infrastructure.Repository
 {
@@ -17,109 +19,40 @@ namespace Stock.BE.Infrastructure.Repository
         {
         }
         /// <summary>
-        /// Đầu lấy dữ liệu sự thay đổi của các mã theo từng khoảng thời gain
-        /// </summary>
-        /// <param name="stockId">ID của chứng khoán</param>
-        /// <param name="periodEnum">Kỳ thay đổi</param>
-        /// <returns></returns>
-        public async Task<List<object>> GetStockByPeriodAsync(Guid stockId, PeriodEnum periodEnum)
-        {
-            var paramDictionary = new Dictionary<string, object>()
-                {
-                    {"p_stock_id", stockId }
-                };
-            var param = new DynamicParameters(paramDictionary);
-
-            // Xác định khoảng thời gian dựa trên periodEnum
-            string interval = periodEnum switch
-            {
-                PeriodEnum.Week1 => "1 week",
-                PeriodEnum.Month1 => "1 month",
-                PeriodEnum.Month6 => "6 months",
-                _ => "1 year" // Mặc định là 1 năm nếu không thuộc các trường hợp trên
-            };
-            var sql = $@"SELECT distinct 
-                                                stock_id,
-                                                DATE(created_at) as created_at,
-                                                avg(current_price) over  (partition by DATE(created_at)) as current_price, 
-                                                avg(change_price) over  (partition by DATE(created_at)) as change_price, 
-                                                avg(change_price_by_percent) over  (partition by DATE(created_at)) as change_price_by_percent 
-                                        FROM stock_price_changes 
-                                        WHERE stock_id =@p_stock_id AND created_at BETWEEN NOW() - INTERVAL '{interval}' AND NOW() order by DATE(created_at) desc;";
-            var result = await _uow.Connection.QueryAsync<object>(sql, param, commandType: CommandType.Text);
-            return result.ToList();
-        }
-        /// <summary>
-        /// Lấy lên các chứng khoán phổ biến
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<StockEntity>> GetPopularStockAsync()
-        {
-            var sql = @"select * from stocks where stock_id in ('ac29582d-e41a-4576-9596-4ac398f14f84',
-                                            '9db887ad-1c70-479e-87c6-4bdcabf71d4e',
-                                            '75f14796-133c-4691-aa3d-e31a7f290c91')";
-            var result = await _uow.Connection.QueryAsync<StockEntity>(sql);
-            return result.ToList();
-        }
-        /// <summary>
-        /// Lấy tài sản và sự thay đổi tài sản của người dùng theo ngày
-        /// </summary>
-        /// <param name="userId">Id của người dùng</param>
-        /// <returns></returns>
-        public async Task<AssetModel> GetAssetByUserAsync(Guid userId)
-        {
-            var param = new DynamicParameters();
-            param.Add("@userId", userId);
-
-            var sql = @"select total_net_assets from ""user"" u where user_id = @userId; 
-                                    select sum(profit_loss) from deals d where user_id = @userId;";
-
-            using (var multi = await _uow.Connection.QueryMultipleAsync(sql, param))
-            {
-                var data1 = await multi.ReadAsync<double>();
-                var data2 = await multi.ReadAsync<double>();
-
-                var result = new AssetModel
-                {
-                    total_asset = data1.FirstOrDefault(),
-                    change_asset = data2.FirstOrDefault()
-                };
-
-                return result;
-            }
-        }
-        /// <summary>
         /// Đầu lấy ra thông tin các deal nắm giữ của người dùng
         /// </summary>
         /// <param name="userId">Id của người dùng</param>
         /// <returns></returns>
-        public async Task<object> GetDealsByUserAsync(Guid userId)
+        public async Task<List<DealModel>> GetDealsByUserAsync(Guid userId)
         {
             var param = new DynamicParameters();
             param.Add("@userId", userId);
 
-            var sql = @"select 
-	                d.deal_id,
-	                d.stock_id,
-	                d.stock_code,
-	                d.total_volume, 
-	                d.total_tradeable_volume,
-	                d.matched_price, 
-	                s.matched_price as current_price,
-	                d.matched_price * d.total_volume * 1000 as cost_value ,
-	                (s.matched_price - d.matched_price) * d.total_volume * 1000 as profit_loss, 
-	                ((s.matched_price - d.matched_price) * d.total_volume * 1000)
-		                /
-	                (d.matched_price * d.total_volume * 1000 ) * 100 as profit_loss_by_percent,
-	                s.difference,
-	                case 
-		                when s.matched_price - d.matched_price > 0 then 0
-	                else 1 end as is_profit
-                from 
-	                deals d 
-                join stocks s on s.stock_id = d.stock_id
-                where d.user_id = @userId;";
-            var result = await _uow.QueryList<object>(sql, param);
+            var sql = @"
+                                select 
+                                    d.deal_id,
+                                    d.stock_id,
+                                    s.stock_code,
+                                    d.total_volume, 
+                                    d.total_tradeable_volume,
+                                    d.matched_price, 
+                                    s.matched_price as current_price,
+                                    CAST(d.matched_price * d.total_volume * 1000 AS decimal) as cost_value,
+                                    CAST((s.matched_price - d.matched_price) * d.total_volume * 1000 AS decimal) as profit_loss,
+                                    CAST(((s.matched_price - d.matched_price) * d.total_volume * 1000) 
+                                         / (d.matched_price * d.total_volume * 1000) * 100 AS decimal) as profit_loss_by_percent,
+                                    s.difference,
+                                    case 
+                                        when s.matched_price - d.matched_price > 0 then 0
+                                        else 1 
+                                    end as is_profit
+                                from 
+                                    deals d 
+                                join stocks s on s.stock_id = d.stock_id
+                                where d.user_id = @userId;
+                            ";
+
+            var result = await _uow.QueryList<DealModel>(sql, param);
             return result;
         }
         /// <summary>
@@ -127,7 +60,7 @@ namespace Stock.BE.Infrastructure.Repository
         /// </summary>
         /// <param name="userId">Id của người dùng</param>
         /// <returns></returns>
-        public async Task<object> GetTransactionsByUserAsync(Guid userId)
+        public async Task<List<object>> GetTransactionsByUserAsync(Guid userId)
         {
             var param = new DynamicParameters();
             param.Add("@userId", userId);
@@ -166,28 +99,6 @@ namespace Stock.BE.Infrastructure.Repository
 
         }
         /// <summary>
-        /// Đầu thêm các deal nắm giữ của người dùng
-        /// </summary>
-        /// <returns></returns>
-        public async Task InsertDeal(DealDTO dealDTO)
-        {
-            var deal = new DealEntity
-            {
-                deal_id = Guid.NewGuid(),
-                stock_id = dealDTO.stock_id,
-                stock_code = dealDTO.stock_code,
-                total_volume = dealDTO.total_volume,
-                total_tradeable_volume = dealDTO.total_tradeable_volume,
-                market_value = dealDTO.market_value,
-                matched_price = dealDTO.matched_price,
-                current_price = dealDTO.current_price,
-                cost_value = dealDTO.cost_value,
-                profit_loss = dealDTO.profit_loss,
-                profit_loss_by_percent = dealDTO.profit_loss_by_percent
-            };
-            await base.BaseInsertAsync(deal, "deals");
-        }
-        /// <summary>
         /// Đầu thêm các giao dịch mua bán của người dùng
         /// </summary>
         /// <returns></returns>
@@ -206,18 +117,9 @@ namespace Stock.BE.Infrastructure.Repository
                 matched_price = transactionsDto.matched_price,
                 volume = transactionsDto.volume,
             };
-
-            string transactionJson = JsonConvert.SerializeObject(transaction);
-
-            var param = new Dictionary<string, object>
-                {
-                    { $"@p_transactions", transactionJson }
-                };
-            var parameters = new DynamicParameters(param);
             if (transaction.transaction_type == 0)
             {
-                var sql = "select * from public.buy_stock(@p_transactions::jsonb);";
-                await _uow.Connection.ExecuteAsync(sql, parameters);
+                await this.BuyStock(transaction);
             }
             else
             {
@@ -227,13 +129,409 @@ namespace Stock.BE.Infrastructure.Repository
                     result.Success = false;
                     result.Message = "Số lượng bán không được phép lớn hơn số lượng sở hữu hiện có ";
                 }
-                parameters.Add("@p_sell_full", transaction.volume == obj?.total_volume);
-                var sql = "select * from public.sell_stock(@p_transactions::jsonb, @p_sell_full);";
-                await _uow.Connection.ExecuteAsync(sql, parameters);
+                else
+                {
+                    await this.SellStock(transaction, transaction.volume == obj?.total_volume, obj?.deal_id);
+                }
             }
+
+            await this.UpdateDealAsync(transaction.stock_id);
             return result;
         }
+        /// <summary>
+        /// Hàm thực hiện lệnh mua mã chứng khoán
+        /// </summary>
+        /// <param name="transactionsEntity">Đối tượng giao dịch</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Exception trong quá trình thực hiện giao dịch</exception>
+        /// Created by: nttue (13/11/2024)
+        private async Task BuyStock(TransactionsEntity transactionsEntity)
+        {
+            try
+            {
+                // Lấy lên các lệnh bán khớp với lệnh mua
+                var param = new Dictionary<string, object>
+                {
+                    { $"@stock_id", transactionsEntity.stock_id },
+                    { $"@order_price", transactionsEntity.order_price }
+                };
 
+                var sql = @$"select 
+                                                t.transactions_id,
+                                                t.stock_id,
+                                                t.user_id, 
+                                                t.order_price as matched_price, 
+                                                t.volume
+                                            from 
+                                                transactions t
+                                            where transaction_type = 1 and ""status"" = 0 and t.stock_id = @stock_id and t.order_price <= @order_price
+                                            order by created_at desc 
+                                            ;";
+
+                var sells = await _uow.QueryList<TransactionModel>(sql, param);
+
+                if (sells.Count > 0)
+                {
+                    decimal amounts = 0;
+                    int volumes = 0;
+                    int startVolume = transactionsEntity.volume;
+                    for (int i = 0; i < sells.Count; i++)
+                    {
+                        var sell = sells[i];
+                        if (startVolume >= sell.volume)
+                        {
+                            startVolume -= sell.volume;
+                            sell.done = true;
+                            sell.rest = 0;
+                            amounts += sell.matched_price * sell.volume;
+                            volumes += sell.volume;
+                        }
+                        else
+                        {
+                            sell.rest = sell.volume - startVolume;
+                            amounts += sell.matched_price * startVolume;
+                            volumes += startVolume;
+                            startVolume = 0;
+                        }
+                    }
+                    var stock = await this.GetByIdAsync(transactionsEntity.stock_id);
+                    // Nếu mua thành công thì thêm deal của người dùng
+                    if (stock != null)
+                    {
+                        var newDeal = new DealEntity
+                        {
+                            deal_id = Guid.NewGuid(),
+                            stock_id = transactionsEntity.stock_id,
+                            stock_code = stock.stock_code,
+                            user_id = transactionsEntity.user_id,
+                            total_volume = volumes,
+                            total_tradeable_volume = stock.tradable_volume,
+                            matched_price = Math.Round(amounts / volumes, 2),
+                            current_price = Math.Round(stock.matched_price, 2)
+                        };
+                        await base.BaseInsertAsync(newDeal, "deals");
+                    }
+
+                    // Cập nhật các lệnh bán
+                    foreach (var sell in sells)
+                    {
+                        // Nếu thực hiện bán hết thành công thực hiện cập nhật trạng thái  của lệnh bán về thành công
+                        var paramTran = new Dictionary<string, object>
+                             {
+                                    { $"@transactions_id", sell.transactions_id}
+                             };
+                        if (sell.done)
+                        {
+
+                            string sqlDeleteTran = @$"update transactions set status = 1 where transactions_id = @transactions_id;";
+                            await _uow.ExecuteDefault(sqlDeleteTran, paramTran);
+                        }
+                        // Nếu chỉ thực hiện bán được 1 phần thì tạo ra 1 lệnh bán thành công và cập nhật lại số lượng lệnh bán cũ 
+                        else
+                        {
+                            if (stock != null)
+                            {
+                                var newTran = new TransactionsEntity
+                                {
+                                    transactions_id = Guid.NewGuid(),
+                                    stock_id = sell.stock_id,
+                                    user_id = sell.user_id,
+                                    stock_code = stock.stock_code,
+                                    transaction_type = 1,
+                                    created_at = DateTime.Now,
+                                    order_price = sell.matched_price,
+                                    matched_price = stock.matched_price,
+                                    volume = sell.volume - sell.rest,
+                                    status = 1
+                                };
+                                await base.BaseInsertAsync(newTran, "transactions");
+                            }
+
+                            paramTran.Add("@volume", sell.rest);
+                            string sqlUpdateTran = @$"update transactions set volume = @volume where transactions_id = @transactions_id;";
+                            await _uow.ExecuteDefault(sqlUpdateTran, paramTran);
+                        }
+                        // Sau khi bán thành công tiến hành cập nhật lại tài sản của người bán
+                        // Cập nhật lại thay đổi số tiền của người dùng                        
+                        var user1 = await this.UpdateAssetUserAsync(sell.user_id, (sell.volume - sell.rest) * sell.matched_price, "+");
+                        await this.InsertTableAssetHistoryAsync(user1);
+                    }
+
+                    // Tiến hành cập nhật lại các lệnh mua và tài sản của người mua
+                    if (startVolume == 0)
+                    { // Nếu người mua mua được hết khối lượng đặt => cập nhật trạng thái giao dịch về thành công
+                        transactionsEntity.status = 1;
+                        await base.BaseInsertAsync(transactionsEntity, "transactions");
+                    }
+                    else
+                    {
+                        // Nếu chỉ mua được 1 phần thì vẫn thêm giao dịch nhưng khối lượng đặt bằng khối lượng chưa mua được 
+                        transactionsEntity.status = 0;
+                        transactionsEntity.volume = startVolume;
+                        await base.BaseInsertAsync(transactionsEntity, "transactions");
+                    }
+                    // Cập nhật lại thay đổi số tiền của người dùng                    
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, volumes * amounts + (transactionsEntity.volume - volumes) * transactionsEntity.order_price);
+                    await this.InsertTableAssetHistoryAsync(user);
+                }
+                else
+                {
+                    // Nếu không có lệnh bán nào được khớp
+                    transactionsEntity.status = 0;
+                    // Thực hiện thêm mới giao dịch
+                    await base.BaseInsertAsync(transactionsEntity, "transactions");
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, transactionsEntity.volume * transactionsEntity.order_price);
+                    await this.InsertTableAssetHistoryAsync(user);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        /// <summary>
+        /// Hàm thực hiện lệnh bán mã chứng khoán
+        /// </summary>
+        /// <param name="transactionsEntity">Đối tượng giao dịch</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Exception trong quá trình thực hiện giao dịch</exception>
+        /// Created by: nttue (13/11/2024)
+        private async Task SellStock(TransactionsEntity transactionsEntity, bool sellFull = false, Guid? dealId = null)
+        {
+            try
+            {
+                // Lấy lên các lệnh bán khớp với lệnh mua
+                var param = new Dictionary<string, object>
+                {
+                    { $"@stock_id", transactionsEntity.stock_id },
+                    { $"@order_price", transactionsEntity.order_price }
+                };
+
+                var sql = @$"select 
+                                                t.transactions_id,
+                                                t.stock_id,
+                                                t.user_id, 
+                                                t.order_price as matched_price, 
+                                                t.volume
+                                            from 
+                                                transactions t
+                                            where transaction_type = 0 and ""status"" = 0 and t.stock_id = @stock_id and t.order_price >= @order_price
+                                            order by created_at desc 
+                                            ;";
+
+                var buys = await _uow.QueryList<TransactionModel>(sql, param);
+
+                // Nếu bán hết deal nắm giữ => xóa deal
+                if (dealId != null)
+                {
+                    if (!sellFull)
+                    {
+                        var sqlUpdateUser = @$"UPDATE public.deals set total_volume = total_volume - @volume
+                                                                                WHERE deal_id = @deal_id";
+                        var paramUpdateUser = new Dictionary<string, object>
+                             {
+                                    { $"@deal_id", dealId },
+                                    { $"@volume", transactionsEntity.volume } ,
+                             };
+                        await _uow.ExecuteDefault(sqlUpdateUser, paramUpdateUser);
+                    }
+                    else
+                    {
+                        var sqlDel = @$"delete from public.deals WHERE deal_id = @deal_id";
+                        var paramDel = new Dictionary<string, object>
+                             {
+                                    { $"@deal_id", dealId }
+                             };
+                        await _uow.ExecuteDefault(sqlDel, paramDel);
+                    }
+                }
+
+                if (buys.Count > 0)
+                {
+                    decimal amounts = 0;
+                    int volumes = 0;
+                    int startVolume = transactionsEntity.volume;
+                    for (int i = 0; i < buys.Count; i++)
+                    {
+                        var buy = buys[i];
+                        if (startVolume >= buy.volume)
+                        {
+                            startVolume -= buy.volume;
+                            buy.done = true;
+                            buy.rest = 0;
+                            amounts += transactionsEntity.order_price * buy.volume;
+                            volumes += buy.volume;
+                        }
+                        else
+                        {
+                            buy.rest = buy.volume - startVolume;
+                            amounts += transactionsEntity.order_price * startVolume;
+                            volumes += startVolume;
+                            startVolume = 0;
+                        }
+                    }
+                    var stock = await this.GetByIdAsync(transactionsEntity.stock_id);
+
+                    // Cập nhật các lệnh bán
+                    foreach (var buy in buys)
+                    {
+                        // Nếu thực hiện bán hết thành công thực hiện cập nhật trạng thái  của lệnh bán về thành công
+                        var paramTran = new Dictionary<string, object>
+                             {
+                                    { $"@transactions_id", buy.transactions_id}
+                             };
+                        if (buy.done)
+                        {
+
+                            string sqlDeleteTran = @$"update transactions set status = 1 where transactions_id = @transactions_id;";
+                            await _uow.ExecuteDefault(sqlDeleteTran, paramTran);
+                        }
+                        // Nếu chỉ thực hiện mua được 1 phần thì tạo ra 1 lệnh mua thành công và cập nhật lại số lượng lệnh mua cũ 
+                        else
+                        {
+                            if (stock != null)
+                            {
+                                var newTran = new TransactionsEntity
+                                {
+                                    transactions_id = Guid.NewGuid(),
+                                    stock_id = buy.stock_id,
+                                    user_id = buy.user_id,
+                                    stock_code = stock.stock_code,
+                                    transaction_type = 0,
+                                    created_at = DateTime.Now,
+                                    order_price = buy.matched_price,
+                                    matched_price = stock.matched_price,
+                                    volume = buy.volume - buy.rest,
+                                    status = 1
+                                };
+                                await base.BaseInsertAsync(newTran, "transactions");
+                            }
+
+                            paramTran.Add("@volume", buy.rest);
+                            string sqlUpdateTran = @$"update transactions set volume = @volume where transactions_id = @transactions_id;";
+                            await _uow.ExecuteDefault(sqlUpdateTran, paramTran);
+                        }
+                        // Tạo deal nắm giữ với mỗi lệnh mua thành công
+                        if (buy.rest < buy.volume && stock != null)
+                        {
+                            var newDeal = new DealEntity
+                            {
+                                deal_id = Guid.NewGuid(),
+                                stock_id = buy.stock_id,
+                                stock_code = stock.stock_code,
+                                user_id = buy.user_id,
+                                total_volume = buy.volume - buy.rest,
+                                total_tradeable_volume = stock.tradable_volume,
+                                matched_price = Math.Round(transactionsEntity.order_price, 2),
+                                current_price = Math.Round(stock.matched_price, 2)
+                            };
+                            await base.BaseInsertAsync(newDeal, "deals");
+                        }
+                        // Sau khi bán thành công tiến hành cập nhật lại tài sản của người bán
+                        // Cập nhật lại thay đổi số tiền của người dùng                        
+                        var user1 = await this.UpdateAssetUserAsync(buy.user_id, buy.volume * buy.matched_price - ((buy.volume - buy.rest) * transactionsEntity.order_price + buy.rest * buy.matched_price), "+");
+                        await this.InsertTableAssetHistoryAsync(user1);
+                    }
+
+                    // Tiến hành cập nhật lại các lệnh mua và tài sản của người mua
+                    if (startVolume == 0)
+                    { // Nếu người bán bán được hết khối lượng đặt => cập nhật trạng thái giao dịch về thành công
+                        transactionsEntity.status = 1;
+                        await base.BaseInsertAsync(transactionsEntity, "transactions");
+                    }
+                    else
+                    {
+                        // Nếu chỉ bán được 1 phần thì vẫn thêm giao dịch nhưng khối lượng đặt bằng khối lượng chưa bán được 
+                        transactionsEntity.status = 0;
+                        transactionsEntity.volume = startVolume;
+                        await base.BaseInsertAsync(transactionsEntity, "transactions");
+
+                        if (stock != null)
+                        {
+                            var newTran = new TransactionsEntity
+                            {
+                                transactions_id = Guid.NewGuid(),
+                                stock_id = transactionsEntity.stock_id,
+                                user_id = transactionsEntity.user_id,
+                                stock_code = stock.stock_code,
+                                transaction_type = 1,
+                                created_at = DateTime.Now,
+                                order_price = transactionsEntity.order_price,
+                                matched_price = stock.matched_price,
+                                volume = transactionsEntity.volume - startVolume,
+                                status = 1
+                            };
+                            await base.BaseInsertAsync(newTran, "transactions");
+                        }
+                    }
+                    // Cập nhật lại thay đổi số tiền của người dùng                    
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, amounts, "+");
+                    await this.InsertTableAssetHistoryAsync(user);
+                }
+                else
+                {
+                    // Nếu không có lệnh mua nào được khớp
+                    transactionsEntity.status = 0;
+                    // Thực hiện thêm mới giao dịch
+                    await base.BaseInsertAsync(transactionsEntity, "transactions");
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        /// <summary>
+        /// Hàm cập nhật lại các deal cùng mã chứng khoán của từng người dùng
+        /// </summary>
+        /// <param name="stockId">Id của mã chứng khoán</param>
+        /// <returns></returns>
+        /// Created by: nttue (13/11/2024)
+        private async Task UpdateDealAsync(Guid stockId)
+        {
+            var param = new Dictionary<string, object>
+                             {
+                                    { $"@p_stock_id", stockId }
+                             };
+            var sql = "select * from public.update_deal(@p_stock_id);";
+            await _uow.Connection.ExecuteAsync(sql, param);
+        }
+        private async Task<UserEntity?> UpdateAssetUserAsync(Guid userId, decimal amount, string operation = "-")
+        {
+            var sqlUpdateUser = @$"update ""user"" u
+                                                                            set cash_value = u.cash_value {operation} @amount,
+	                                                                            total_net_assets  = u.total_net_assets {operation} @amount
+                                                                            where user_id = @user_id returning *";
+            var paramUpdateUser = new Dictionary<string, object>
+                             {
+                                    { $"@user_id", userId },
+                                    { $"@amount", amount * 1000 }
+                             };
+            var user = await _uow.QueryDefault<UserEntity>(sqlUpdateUser, paramUpdateUser);
+
+            return user;
+        }
+        private async Task InsertTableAssetHistoryAsync(UserEntity? user)
+        {
+            // Thực hiện thêm dữ liệu vào bảng thay đổi lịch sử tài khoản của người dùng
+            if (user != null)
+            {
+
+                var tableAssetHistoryEntity = new TableAssetHistoryEntity
+                {
+                    table_asset_history_id = Guid.NewGuid(),
+                    user_id = user.user_id,
+                    cash_value = user.cash_value,
+                    total_net_assets = user.total_net_assets,
+                    stock_value = user.stock_value
+                };
+
+                await base.BaseInsertAsync(tableAssetHistoryEntity, "table_asset_history");
+            }
+        }
         private async Task<DealEntity?> GetTotalVolumeByUserId(Guid userId)
         {
             var param = new Dictionary<string, object>
@@ -241,18 +539,10 @@ namespace Stock.BE.Infrastructure.Repository
                     { $"@userId", userId }
              };
 
-            var sql = @"select sum(total_volume) as total_volume from deals d where d.user_id  = @userId;";
+            var sql = @"select d.deal_id, sum(d.total_volume) as total_volume from deals d where d.user_id  = @userId group by d.deal_id;";
             var entity = await _uow.QueryDefault<DealEntity>(sql, param);
             return entity;
         }
-
-        public async Task UpdateStockPriceChange()
-        {
-            //var sql = "select * from public.calculate_stock_change();";
-            var sql = "select * from public.buy_sell_stock();";
-            await _uow.Connection.ExecuteAsync(sql);
-        }
-
         public async Task<List<TableAssetHistoryModel>> GetAssetHistoryByUserAsync(Guid userId, PeriodEnum periodEnum)
         {
             var paramDictionary = new Dictionary<string, object>()
@@ -280,20 +570,12 @@ namespace Stock.BE.Infrastructure.Repository
                         avg(cash_value) OVER (PARTITION BY DATE(created_at)) as cash_value
                     FROM table_asset_history 
                     WHERE user_id = @p_user_id 
-                    AND created_at BETWEEN NOW() - INTERVAL '{interval}' AND NOW();";
+                    AND  DATE(created_at) BETWEEN NOW() - INTERVAL '{interval}' AND NOW();";
 
             var result = await _uow.Connection.QueryAsync<TableAssetHistoryModel>(sql, param, commandType: CommandType.Text);
 
             return result.ToList();
         }
-
-
-        public async Task BuySellStockAsync()
-        {
-            var sql = "select * from public.buy_sell_stock();";
-            await _uow.Connection.ExecuteAsync(sql);
-        }
-
         public override async Task<StockEntity?> GetByIdAsync(Guid id)
         {
             var param = new Dictionary<string, object>
@@ -307,7 +589,6 @@ namespace Stock.BE.Infrastructure.Repository
 
             return entity;
         }
-
         public async Task<object?> GetAssetDashboard(Guid userId)
         {
             var param = new Dictionary<string, object>
@@ -327,5 +608,23 @@ namespace Stock.BE.Infrastructure.Repository
 
             return result;
         }
+
+        public async Task<List<string>> GetAllStockCodeAsync()
+        {
+            var result = new List<string>();
+            string sql = @"select stock_code from stocks where modified_date <> date(now());";
+            var stocks = await _uow.QueryDefault<StockEntity>(sql);
+            if (stocks != null && stocks.Count > 0)
+            {
+                result = stocks.Select(stock => stock.stock_code).ToList();
+            }
+
+            return result;
+        }
+        public async Task UpdateStockAsync(string sql, object param)
+        {
+            await _uow.ExecuteDefault(sql, param);
+        }
+
     }
 }

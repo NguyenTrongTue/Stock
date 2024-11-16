@@ -86,6 +86,9 @@ export default {
         case Enums.EnumColumnType.Number: {
           return data.toLocaleString('en-US');
         }
+        case Enums.EnumColumnType.Decimal: {
+          return data.toFixed(2).toLocaleString('en-US');
+        }
         case Enums.EnumColumnType.Percent: {
           return `${data.toFixed(2)} %`;
         }

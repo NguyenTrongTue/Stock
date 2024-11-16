@@ -8,16 +8,6 @@ namespace Stock.BE.Core.DL
 {
     public interface IStockDL : IBaseRepository<StockEntity>
     {
-        Task<List<object>> GetStockByPeriodAsync(Guid stockId, PeriodEnum periodEnum);
-
-        Task<List<StockEntity>> GetPopularStockAsync();
-        /// <summary>
-        /// Hàm cập nhật giá trị của mã chứng khoán, tài sản chứng khoán của người dùng
-        ///  và thực hiện insert dữ liệu với bảng lịch sử thay đổi giá chứng khoán
-        /// </summary>
-        /// <returns></returns>
-        /// Created by: nttue - 12.10.2024
-        Task UpdateStockPriceChange();
         /// <summary>
         /// Hàm cộng tiền vào tài khoản của người dùng
         /// </summary>
@@ -34,12 +24,13 @@ namespace Stock.BE.Core.DL
         /// <param name="transactionsDto">Giao dịch</param>
         /// <returns></returns>
         /// Created by: nttue - 12.10.2024
-        Task<AddTransactionResult> InsertTransaction(TransactionsDTO transactionsDto);        
-        Task<object> GetTransactionsByUserAsync(Guid userId);
-        Task<object> GetDealsByUserAsync(Guid userId);
-
-        Task BuySellStockAsync();
+        Task<AddTransactionResult> InsertTransaction(TransactionsDTO transactionsDto);
+        Task<List<object>> GetTransactionsByUserAsync(Guid userId);
+        Task<List<DealModel>> GetDealsByUserAsync(Guid userId);
 
         Task<object?> GetAssetDashboard(Guid userId);
+        Task<List<string>> GetAllStockCodeAsync();
+
+        Task UpdateStockAsync(string sql, object param);
     }
 }
