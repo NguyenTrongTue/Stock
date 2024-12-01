@@ -69,19 +69,6 @@ namespace Stock.BE.Infrastructure.Repository
             return result;
         }
         /// <summary>
-        /// Đầu lấy thông tin của người dùng bao gồm luôn cả tài sản
-        /// </summary>
-        /// <param name="userId">Id của người dùng</param>
-        /// <returns></returns>
-        public async Task<object> GetUserByIdAsync(Guid userId)
-        {
-            var param = new DynamicParameters();
-            param.Add("@userId", userId);
-            var sql = @"select * from user d where user_id = @userId;";
-            var result = await _uow.QueryList<object>(sql, param);
-            return result;
-        }
-        /// <summary>
         /// Đầu thêm tiền mặt cho người dùng
         /// </summary>
         /// <param name="userId">Id của người dùng</param>
