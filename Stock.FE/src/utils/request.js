@@ -1,5 +1,6 @@
 import axios from "axios";
 const axiosClient = axios.create({
+  // baseURL: 'http://150.95.113.231:5023/api/',
   baseURL: 'https://localhost:7280/api/',
 });
 

@@ -14,9 +14,6 @@ class StockAPI extends BaseAPI {
     return request.post(this.url + "/login", payload);
   }
 
-
-
-
   addCashByUser(userId) {
     return request.get(this.url + `/add_cash?userId=${userId}`);
   }

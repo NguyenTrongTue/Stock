@@ -12,6 +12,7 @@
   <Wallet v-if="type == 'Wallet'" />
   <ArrowDown v-if="type == 'ArrowDown'" />
   <ArrowUp v-if="type == 'ArrowUp'" />
+  <DoubleArrow v-if="type == 'DoubleArrow'" />
 </template>
 
 <script>
@@ -28,6 +29,7 @@ import Search from "./Search.vue";
 import Wallet from "./Wallet.vue";
 import ArrowDown from "./ArrowDown.vue";
 import ArrowUp from "./ArrowUp.vue";
+import DoubleArrow from "./DoubleArrow.vue";
 
 export default {
   name: "Icon",
@@ -58,7 +60,8 @@ export default {
     Search,
     Wallet,
     ArrowDown,
-    ArrowUp
+    ArrowUp,
+    DoubleArrow
   },
 };
 </script>

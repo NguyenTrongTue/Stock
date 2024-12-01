@@ -25,14 +25,12 @@
         <div class="tab_content">
           <div class="stock_wrapper">
             <div class="stock_search">
-
-              <msearch v-model="search" :placeholder="'Tìm kiếm mã'" @onInput="handleSearchStock"></msearch>
+              <msearch v-model="search" :datas="searchResult" :placeholder="'Tìm kiếm mã'" @onInput="handleSearchStock"
+                @onBlur="handleChooseSearch" @indexHover="handleInputHover"></msearch>
               <div class="search_wrapper" v-if="showSearchResult">
-
-
                 <div class="search_item" @click="handleChooseSearch(item)" v-for="(item, index) in searchResult"
-                  :key="index">
-
+                  :key="index"
+                  :class="['search_item', indexHover === index ? 'active' : '', index % 2 == 0 ? 'active' : '']">
                   <div class="search_item_top flex">
                     <div class="search_stock_code">{{ item.stock_code }}</div>
                     <div class="search_stock_price"
@@ -131,6 +129,7 @@ import StockAPI from '@/apis/StockAPI';
 export default {
   data() {
     return {
+      indexHover: 0,
       objectMaster: {
         buying_ability: 0,
         sell_ability: 0,
@@ -219,6 +218,10 @@ export default {
 
   },
   methods: {
+    handleInputHover(index) {
+      const me = this;
+      me.indexHover = index;
+    },
     /**
      * Validates that the volume and order price input fields do not have any errors.
      * - Returns true if either input field has an error.
@@ -284,6 +287,7 @@ export default {
         }
         me.$store.commit("showLoading");
         var result = await StockAPI.purchase(payload);
+        await me.handleAfterBuySellDone();
         me.$store.commit("hideLoading");
         me.alterBuyStock(payload);
         if (result) {
@@ -326,6 +330,7 @@ export default {
         }
         me.$store.commit("showLoading");
         var result = await StockAPI.purchase(payload);
+        await me.handleAfterBuySellDone();
         me.$store.commit("hideLoading");
         if (!result.success) {
           this.$store.commit("showToast", {
@@ -350,6 +355,17 @@ export default {
         });
         me.$store.commit("hideLoading");
       }
+    },
+    async handleAfterBuySellDone() {
+      const me = this;
+      let payload = {
+        email: me.user.email,
+        password: me.user.password
+      }
+      var result = await StockAPI.login(payload);
+      if (!result) return;
+      this.$ms.cache.setCache("user", result);
+      me.getAssets();
     },
     handleSearchStock(key) {
       const me = this;

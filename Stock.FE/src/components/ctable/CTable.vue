@@ -8,11 +8,12 @@
             width: column.width ? column.width + 'px' : null,
             minWidth: column.width ? column.width + 'px' : null,
           }" :ref="column.field" @click="handleSort(column)">
-            <div class="th__content">
+            <span class="th__content">
               <span>{{ column.headerName }}</span>
               <micon class="th_arrow" v-if="column.sort == 'asc'" type="ArrowUp" />
               <micon class="th_arrow" v-else-if="column.sort == 'desc'" type="ArrowDown" />
-            </div>
+              <micon class="th_arrow" v-else type="DoubleArrow" />
+            </span>
           </th>
         </tr>
       </thead>

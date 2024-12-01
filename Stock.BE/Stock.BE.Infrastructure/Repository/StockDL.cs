@@ -208,14 +208,13 @@ namespace Stock.BE.Infrastructure.Repository
                              };
                         if (sell.done)
                         {
-
                             string sqlDeleteTran = @$"update transactions set status = 1 where transactions_id = @transactions_id;";
                             await _uow.ExecuteDefault(sqlDeleteTran, paramTran);
                         }
                         // Nếu chỉ thực hiện bán được 1 phần thì tạo ra 1 lệnh bán thành công và cập nhật lại số lượng lệnh bán cũ 
                         else
                         {
-                            if (stock != null)
+                            if (stock != null && sell.rest < sell.volume)
                             {
                                 var newTran = new TransactionsEntity
                                 {
@@ -376,7 +375,7 @@ namespace Stock.BE.Infrastructure.Repository
                         // Nếu chỉ thực hiện mua được 1 phần thì tạo ra 1 lệnh mua thành công và cập nhật lại số lượng lệnh mua cũ 
                         else
                         {
-                            if (stock != null)
+                            if (stock != null && (buy.rest < buy.volume))
                             {
                                 var newTran = new TransactionsEntity
                                 {

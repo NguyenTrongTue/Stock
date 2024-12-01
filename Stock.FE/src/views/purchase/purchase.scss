@@ -263,6 +263,10 @@
   height: 50px;
   padding: 6px;
   cursor: pointer;
+
+  &.active {
+    background-color: rgb(36, 37, 39);
+  }
 }
 
 .search_item_top {

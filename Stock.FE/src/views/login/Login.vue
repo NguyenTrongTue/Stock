@@ -4,7 +4,7 @@
       <div class="login__left__top">
         <div class="title">ĐĂNG NHẬP</div>
         <div class="sub_title">
-          <span class="no__account">Bạn chưa có tài khoản 1234</span>
+          <span class="no__account">Bạn chưa có tài khoản</span>
           <span class="login__text" @click="handleDirectSignup">Đăng ký</span>
         </div>
 
