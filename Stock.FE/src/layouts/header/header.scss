@@ -29,9 +29,22 @@
   .tab_item {
     display: flex;
 
+
     .router-link-active>span {
       color: rgba(255, 66, 66);
       text-decoration: none;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        transition: width 0.5s ease;
+        height: 2px;
+        background-color: rgba(255, 66, 66);
+      }
     }
 
     span {
@@ -39,11 +52,26 @@
       color: rgba(132, 134, 138);
       font-weight: 400;
       cursor: pointer;
+      position: relative;
 
       &:hover {
-        color: white;
+        color: rgba(255, 66, 66);
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        transition: width 0.5s ease;
+        height: 2px;
+        background-color: red;
       }
     }
+
+
   }
 }
 

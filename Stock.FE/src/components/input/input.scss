@@ -3,7 +3,8 @@
 .input-default {
   position: relative;
   min-width: 50px;
-  &.collapse {  
+
+  &.collapse {
     transition: all 0.5s ease;
     width: 100px;
   }
@@ -24,10 +25,12 @@
   font-size: 11px;
   margin-top: 2px;
 }
+
 .input_maxlength {
   font-size: 14px;
   justify-self: flex-end;
 }
+
 textarea,
 input {
   font-size: 16px;
@@ -38,8 +41,10 @@ input {
   border-radius: 2px;
   border: 0.5px solid var(--primary--text-color-1);
   position: relative;
-  color: white !important;;
+  color: white !important;
+  ;
 }
+
 textarea {
   width: 100%;
   min-width: 100%;
@@ -47,6 +52,7 @@ textarea {
   min-height: 120px;
   font-family: "notosans", sans-serif;
 }
+
 input {
   color: var(--primary-text-color);
   width: 100%;
@@ -67,25 +73,29 @@ input {
   justify-content: center;
   align-items: center;
 }
+
 .input-label {
   color: #86848a;
   cursor: default;
   font-size: 12px;
   font-weight: 500;
-  
- 
+
+
 }
-.input-wrapper input:focus + .input-label-wrapper{
+
+.input-wrapper input:focus+.input-label-wrapper {
   &.no-text {
     top: -1px
   }
 }
-.input-wrapper input:focus + .input-label-wrapper{
+
+.input-wrapper input:focus+.input-label-wrapper {
   &.has-text {
     top: -1px !important;
   }
 }
-.input-label-wrapper{
+
+.input-label-wrapper {
   &.has-text {
     top: -1px !important;
   }
@@ -96,8 +106,9 @@ input {
 }
 
 .input::placeholder {
-   color: #86848a;
+  color: #86848a;
 }
+
 .input-icon {
   display: flex;
   position: absolute;
@@ -107,11 +118,12 @@ input {
   color: var(--gray-600);
   cursor: pointer;
 }
+
 .input-icon input {
   padding-right: 40px;
 }
 
-.btn-radio + .btn-radio {
+.btn-radio+.btn-radio {
   margin-left: 24px;
 }
 
@@ -121,6 +133,7 @@ input {
   justify-content: flex-end;
   margin-left: 12px;
 }
+
 .input__icon {
   position: absolute;
   top: 50%;
@@ -128,6 +141,7 @@ input {
   color: #8795a1;
   transform: translateY(-50%);
 }
+
 .input-wrapper {
   position: relative;
 }
@@ -139,7 +153,9 @@ input {
   top: 50%;
   transform: translateY(-50%);
   gap: 8px;
-  .decrease,.increase {
+
+  .decrease,
+  .increase {
     background-color: rgba(57, 58, 60, 0.5);
     display: flex;
     align-items: center;

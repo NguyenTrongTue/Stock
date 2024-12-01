@@ -3,6 +3,7 @@ export const columns = [
     {
         field: "stock_code",
         headerName: "Mã",
+        groupRow: 'trading_floor',
         type: Enums.EnumColumnType.Text,
         textAlign: 'left',
         width: 100,

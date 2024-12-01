@@ -14,7 +14,7 @@ class StockAPI extends BaseAPI {
     return request.post(this.url + "/login", payload);
   }
 
- 
+
 
 
   addCashByUser(userId) {
@@ -39,6 +39,9 @@ class StockAPI extends BaseAPI {
 
   getAssetDashboard(userId) {
     return request.get(this.url + `/get_asset_dashboard?userId=${userId}`);
+  }
+  getReportStock() {
+    return request.get(this.url + `/get_report_stock`);
   }
 }
 

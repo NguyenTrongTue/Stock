@@ -33,10 +33,5 @@ public class DealEntity
     /// Giá khớp lệnh
     /// </summary>
     public decimal matched_price { get; set; }
-
-    /// <summary>
-    /// Giá hiện tại
-    /// </summary>
-    public decimal current_price { get; set; }
 }
  

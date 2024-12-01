@@ -60,7 +60,7 @@ export const configOptions = {
     yaxis: {
       labels: {
         formatter: function (value) {
-          return `${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+          return `${value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
         },
         style: {
           colors: ["#fff"], // Màu sắc của nhãn

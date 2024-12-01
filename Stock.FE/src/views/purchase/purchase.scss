@@ -203,8 +203,23 @@
 
 .purchase_action {
   display: flex;
+  justify-content: space-between;
   gap: 12px;
+}
 
+.action_wrapper {
+  flex: 1;
+
+  .max_value {
+    color: var(--primary--text-color-1);
+    text-align: center;
+    margin-top: 8px;
+
+    span {
+      font-weight: 600;
+      color: var(--primary--text-color-2);
+    }
+  }
 }
 
 .buy,
@@ -221,7 +236,7 @@
 }
 
 .buy {
-  background-color: #2ca01c;
+  background-color: rgb(52, 200, 94);
 }
 
 .sell {

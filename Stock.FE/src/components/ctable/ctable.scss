@@ -36,6 +36,17 @@ td {
     padding: 0 8px;
     max-height: 40px;
     height: 40px;
+    cursor: pointer;
+}
+
+.row__content {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-row {
+    color: var(--primary--text-color-1);
+    font-weight: 400;
 }
 
 tbody {

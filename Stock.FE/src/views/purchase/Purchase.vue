@@ -88,31 +88,34 @@
               <div class="purchasing_ability_title">Sức mua</div>
               <div class="purchasing_ability_value">{{ asset.cash_value }}</div>
             </div>
-
             <div class="set_price">
               <div class="set_price_title">Giá đặt</div>
-              <minput :isAdjustable="true" name="order_price" v-model="objectMaster.order_price" ref="order_price"
-                :allowDecimal="true" :defaultChangeValue="0.15" :checkError="true" class="set_price_input row-100"
-                @onInput="handleSetPrice" />
-
+              <minput :isAdjustable="true" textAlignname="order_price" v-model="objectMaster.order_price"
+                ref="order_price" :allowDecimal="true" :defaultChangeValue="0.15" :checkError="true"
+                class="set_price_input row-100" @onInput="handleSetPrice" />
             </div>
-
             <div class="set_price">
               <div class="set_price_title">KL đặt</div>
               <minput name="volume" :isAdjustable="true" v-model="objectMaster.volume" ref="volume" :allowNumber="true"
                 :defaultChangeValue="100" :checkError="true" class="set_price_input row-100"
                 @onInput="handleSetVolume" />
-
             </div>
           </div>
+
           <div class="purchase_action">
-            <div class="buy" @click="handlePurchase">
-              <div class="title">MUA</div>
-              <div>{{ objectMaster.buying_ability }}</div>
+            <div class="action_wrapper" @click="handlePurchase">
+              <div class="buy">
+                <div class="title">MUA</div>
+                <div class="action_text">Giá trị: <span>{{ valueAction }}</span></div>
+              </div>
+              <div class="max_value">Mua tối đa: <span>{{ objectMaster.buying_ability }}</span></div>
             </div>
-            <div class="sell" @click="handleSell">
-              <div class="title">BÁN</div>
-              <div>{{ objectMaster.sell_ability }}</div>
+            <div class="action_wrapper" @click="handleSell">
+              <div class="sell">
+                <div class="title">BÁN</div>
+                <div class="action_text">Giá trị: <span>{{ valueAction }}</span></div>
+              </div>
+              <div class="max_value">Bán tối đa: <span>{{ objectMaster.sell_ability }}</span></div>
             </div>
           </div>
         </div>
@@ -162,19 +165,30 @@ export default {
   async mounted() {
     const me = this;
     try {
-      this.$store.commit("showLoading");
+      me.$store.commit("showLoading");
 
       await me.handleGetDataSearch();
       me.getAssets();
       await me.getDealsAndTransactions();
-      this.$store.commit("hideLoading");
+      if (me.$route.params && me.$route.params.stock_id) {
+        me.handleChooseDeal({ stock_id: me.$route.params.stock_id });
+      }
+      me.$store.commit("hideLoading");
     } catch (error) {
       console.log(error);
-      this.$store.commit("hideLoading");
+      me.$store.commit("hideLoading");
     }
   },
+  computed: {
+    valueAction() {
+      let amount = 0;
+      if (this.objectMaster.order_price && this.objectMaster.volume) {
+        amount = this.objectMaster.order_price * this.objectMaster.volume * 1000;
+      }
 
-
+      return amount == 0 ? '-' : amount > 1000000000 ? this.$ms.common.formatAmount((amount / 1000000000).toFixed(0)) + ' tỷ' : this.$ms.common.formatAmount(amount.toFixed(0));
+    }
+  },
   watch: {
     'objectMaster.order_price'(price) {
       const me = this;
@@ -189,12 +203,15 @@ export default {
     },
     'objectMaster.volume'(volume) {
       const me = this;
-      console.log(volume);
       if (volume <= 0) {
         me.$refs.volume.setError('Khối lượng đặt phải lớn hơn 0.');
       } else if (volume > me.objectMaster.buying_ability || volume > me.currentStock.volume) {
         me.$refs.volume.setError('Khối lượng đặt vượt quá số biên cho phép.');
-      } else {
+      }
+      else if (volume % 100 != 0) {
+        me.$refs.volume.setError('Khối lượng đặt là bội của 100.');
+      }
+      else {
         me.$refs.volume.setError('');
       }
 
@@ -202,6 +219,33 @@ export default {
 
   },
   methods: {
+    /**
+     * Validates that the volume and order price input fields do not have any errors.
+     * - Returns true if either input field has an error.
+     * - Returns false if both input fields are valid.
+     * @returns {boolean}
+     */
+    validate() {
+      const me = this;
+      if (me.objectMaster.volume == 0) {
+        me.$refs.volume.setError('Khối lượng đặt phải lớn hơn 0.');
+        me.$refs.volume.focus();
+        return true;
+      }
+      if (me.$refs.volume.error || me.$refs.order_price.error) {
+        return true;
+      } else {
+        return false;
+      }
+
+    },
+    /**
+     * Asynchronously retrieves the deals and transactions of the currently logged in user.
+     * - Makes a GET request to the StockAPI to retrieve the deals and transactions.
+     * - Upon successful retrieval, assigns the deals and transactions to the dataDeals and
+     *   dataTransactions properties of the component.
+     * @returns {Promise<void>}
+     */
     async getDealsAndTransactions() {
       const me = this;
       try {
@@ -224,12 +268,7 @@ export default {
     async handlePurchase() {
       const me = this;
       try {
-        if (me.objectMaster.volume == 0) {
-          this.$store.commit("showToast", {
-            label: "Khối lượng đặt phải lớn hơn 0.",
-            type: 'error'
-          });
-        }
+        if (me.validate()) return;
 
         const payload = {
           stock_id: me.currentStock.stock_id,
@@ -270,12 +309,8 @@ export default {
     async handleSell() {
       const me = this;
       try {
-        if (me.objectMaster.volume == 0) {
-          this.$store.commit("showToast", {
-            label: "Khối lượng đặt phải lớn hơn 0.",
-            type: 'error'
-          });
-        }
+        if (me.validate()) return;
+
 
         const payload = {
           stock_id: me.currentStock.stock_id,
@@ -350,15 +385,15 @@ export default {
 
         me.currentStock = {
           ...stock,
-          volume: deal.total_volume
+          volume: 200
         };
 
         me.search = stock.stock_code;
         me.objectMaster.order_price = stock.matched_price;
-        me.objectMaster.sell_ability = deal.total_tradeable_volume;
+        me.objectMaster.sell_ability = 200;
 
-        me.objectMaster.volume = stock.tradable_volume;
-        me.currentStock.percent = `${stock.difference === 1 ? '-' :
+        me.objectMaster.volume = 200;
+        me.currentStock.percent = `${stock.difference === 1 ? '' :
           stock.difference === 0 ? '+' :
             ''}${((stock.change_price / stock.matched_price) * 100).toFixed(2)}%`
 
@@ -375,7 +410,7 @@ export default {
       me.dataSearchs = data.map(stock => {
         return {
           ...stock,
-          percent: `${stock.difference === 1 ? '-' :
+          percent: `${stock.difference === 1 ? '' :
             stock.difference === 0 ? '+' :
               ''}${((stock.change_price / stock.matched_price) * 100).toFixed(2)}%`
         }
@@ -400,7 +435,7 @@ export default {
       me.user = user;
       if (user) {
         me.asset = {
-          cash_value: this.$ms.common.formatAmount(user.cash_value)
+          cash_value: this.$ms.common.formatAmount(Math.round(user.cash_value, 0))
         }
       }
 

@@ -15,18 +15,15 @@ export default {
 
     data() {
         return {
-            series: [],
+            series: [{ name: 'Chênh lệch', data: [] }],
             chartOptions: {
                 chart: {
                     type: 'bar',
-                    height: 450,
-                    stacked: true,
+                    height: 450
                 },
                 dataLabels: {
                     enabled: true,
-                    formatter: function (val) {
-                        return val % 1000000 == 0 ? val / 1000000 + "M" : (val / 1000000).toFixed(2) + "M";
-                    },
+
                     style: {
                         fontSize: '12px',
                         colors: ["white"]
@@ -56,9 +53,9 @@ export default {
                 },
                 yaxis: {
                     labels: {
-                        formatter: function (value) {
-                            return value / 1000000 + " M"; // Thêm text sau giá trị trục Y
-                        },
+                        // formatter: function (value) {
+                        //     return value / 1000000 + " M"; // Thêm text sau giá trị trục Y
+                        // },
                         style: {
                             colors: ['#85868a'], // Đổi màu chữ nhãn trục Y
                             fontSize: '14px', // Thay đổi kích thước font chữ
@@ -83,15 +80,15 @@ export default {
             handler(newValue) {
                 const me = this;
                 if (newValue) {
-                    me.series = newValue.data;
-                    let xaxisLabels = newValue.originData.map(_ => _.created_at.split("T")[0]);
+                    me.series[0].data = newValue.data;
+
 
 
                     this.chartOptions = {
                         ...this.chartOptions,
                         xaxis: {
                             ...this.chartOptions.xaxis,
-                            categories: xaxisLabels
+                            categories: newValue.labels
                         }
                     };
                 }

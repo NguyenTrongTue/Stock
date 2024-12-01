@@ -11,11 +11,13 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddCors(p => p.AddPolicy("MyCors", build =>
         {
+            //build.WithOrigins("http://150.95.113.231")
             build.WithOrigins("http://localhost:5173")
-           .AllowAnyMethod()
-           .AllowAnyHeader()
-           .AllowCredentials();
+                 .AllowAnyMethod()
+                 .AllowAnyHeader()
+                 .AllowCredentials();
         }));
+
         // Add services to the container.
         builder.Services.AddControllers();
         builder.Services.AddHttpClient();
@@ -28,11 +30,8 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI();
         app.UseCors("MyCors");
         app.UseHttpsRedirection();
 

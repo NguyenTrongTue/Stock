@@ -3,25 +3,27 @@
     <table class="table">
       <thead>
         <tr>
-          <th v-for="(column, index) in columns" :key="index" :style="{
+          <th v-for="(column, index) in columnConfigs" :key="index" :style="{
             'text-align': column.textAlign,
             width: column.width ? column.width + 'px' : null,
             minWidth: column.width ? column.width + 'px' : null,
-          }" :ref="column.field">
+          }" :ref="column.field" @click="handleSort(column)">
             <div class="th__content">
               <span>{{ column.headerName }}</span>
+              <micon class="th_arrow" v-if="column.sort == 'asc'" type="ArrowUp" />
+              <micon class="th_arrow" v-else-if="column.sort == 'desc'" type="ArrowDown" />
             </div>
           </th>
         </tr>
       </thead>
       <tbody class="tbody">
-        <tr v-for="(item, index) in datax" :key="index">
+        <tr v-for="(item, index) in dataResource" :key="index">
           <td v-for="(column, index) in columns" :key="index" :style="{
             'text-align': column.textAlign,
             width: column.width ? column.width + 'px' : null,
             minWidth: column.width ? column.width + 'px' : null,
           }" :ref="column.field" @click="handleClickRow(item)">
-            <div
+            <div class="row__content"
               :class="`${column.functionCustomColorTD ? 'td__content_wrapper ' + column.functionCustomColorTD(item[column.field]) : ''}`">
               <span
                 :class="`td__content ${column.funcCusColor ? column.funcCusColor(item[column.field], item[column.keyColor]) : ''}`">
@@ -29,6 +31,7 @@
                   formatData(column,
                     item[column.field], item.difference)
                 }}</span>
+              <span v-if="column.groupRow" class="group-row">{{ item[column.groupRow] }}</span>
             </div>
           </td>
         </tr>
@@ -64,9 +67,23 @@ export default {
   },
   data() {
     return {
+      dataResource: this.datax,
+      columnConfigs: this.columns,
     }
   },
-  watch: {},
+  watch: {
+    datax() {
+      this.dataResource = this.datax
+    },
+    columns() {
+      this.columnConfigs = this.columns.map(item => {
+        return {
+          ...item,
+          sort: ''
+        }
+      })
+    }
+  },
   computed: {
     hasNoData() {
       return this.datax.length == 0;
@@ -74,6 +91,34 @@ export default {
   },
 
   methods: {
+    handleSort(column) {
+      const me = this;
+      if (column.sort == 'asc') {
+        column.sort = 'desc';
+      } else if (column.sort == 'desc') {
+        column.sort = '';
+      } else {
+        column.sort = 'asc';
+      }
+      this.columnConfigs.forEach(item => {
+        if (item.field != column.field) {
+          item.sort = '';
+        }
+      })
+      if (column.type === Enums.EnumColumnType.Text) {
+        if (column.sort == 'asc') {
+          me.dataResource.sort((a, b) => a[column.field].localeCompare(b[column.field]));
+        } else if (column.sort == 'desc') {
+          me.dataResource.sort((a, b) => b[column.field].localeCompare(a[column.field]));
+        }
+      } else {
+        if (column.sort == 'asc') {
+          me.dataResource.sort((a, b) => a[column.field] - b[column.field]);
+        } else if (column.sort == 'desc') {
+          me.dataResource.sort((a, b) => b[column.field] - a[column.field]);
+        }
+      }
+    },
     handleClickRow(row) {
       this.$emit('clickRow', row)
     },

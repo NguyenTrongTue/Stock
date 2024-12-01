@@ -18,6 +18,7 @@ namespace Stock.BE.Jobs
             });
 
             services.ConfigureOptions<LoggingBackgroundJobSetup>();
+            services.ConfigureOptions<UpdateAssetBackgroundJobSetup>();
         }
     }
 }

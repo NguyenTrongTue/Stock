@@ -1,15 +1,15 @@
 <template>
-  <div class="line_chart_wrapper">
-    <div class="choose_period">
+  <div class="line_chart_wrapper" ref="MLineChart">
+    <div class="choose_period" ref="choose_period">
       <div class="choose_period_item" :class="{ 'active': item.key == currentPeriod }" v-for="(item) in periods"
         :key="item.key" @click="currentPeriod = item.key">{{ item.label }}</div>
 
     </div>
     <div class="line_chart">
-      <apexchart type="area" height="320" ref="chart" :options="chartOptions" :series="series">
+      <apexchart type="area" :height="chartHeight" ref="chart" :options="chartOptions" :series="series">
       </apexchart>
     </div>
-    <div class="line_chart__bottom">
+    <div class="line_chart__bottom" ref="line_chart__bottom">
       <div class="line_chart__bottom_item" @click="handleChooseStock(stock.IndexId)" v-for="stock in stocks"
         :key="stock.IndexId" :class="{ 'active': stock.IndexId == currentStock }">
         <div class="top">
@@ -34,13 +34,16 @@ import MarketAPI from '@/apis/MarketAPI.js';
 
 export default {
   name: 'MLineChart',
-
-  async mounted() {
-    await this.getPopularStock();
+  created() {
+    this.calculateHeight();
+  },
+  mounted() {
+    this.getPopularStock();
   },
   data() {
     return {
       ...configOptions,
+      chartHeight: 300,
       currentPeriod: 1,
       periods: [
         {
@@ -67,6 +70,10 @@ export default {
     }
   },
   methods: {
+    calculateHeight() {
+      const me = this;
+      me.chartHeight = window.innerHeight - 240;
+    },
 
     async getPopularStock() {
       const me = this;

@@ -6,11 +6,11 @@
       <component :is="typeComponent" class="input" ref="minput" :type="typeInput ? typeInput : 'text'" :rules="rules"
         :name="name" :error="error" :value="dataValue" :style="{ 'text-align': textAlign }" :tabindex="tabIndex"
         @input="onInput" :maxlength="maxLength > 0 && maxLength" @blur="onBlur(name)" spellcheck="false" />
-      <component :is="showIcon2 ? icon2 : icon1" class="input__icon" @click="clickIcon"></component>
       <div class="input-label-wrapper" :class="!dataValue ? 'no-text' : 'has-text'" v-if="label"
         @click="handleClickLabel">
         <span class="input-label">{{ label }}</span>
       </div>
+      <component :is="showIcon2 ? icon2 : icon1" class="input__icon" @click="clickIcon"></component>
       <div class="change_input_wrapper" v-if="isAdjustable">
         <div class="decrease" @click="handleDecrease">
           <micon type="Decrease" />

@@ -2,7 +2,6 @@
 using Quartz;
 using Stock.BE.Core.DL;
 using Stock.BE.Core.Model;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 namespace Stock.BE.Jobs;
@@ -15,7 +14,7 @@ public class LoggingBackgroundJob : IJob
     private string _accessToken;
     private readonly string _apiUrl = "https://fc-data.ssi.com.vn/";
     private readonly string _consumerId = "d7704f486ea64f7986a84b1a35ac9495";
-    private readonly string _consumerSecret = "9daa59d3ca254956becedba7768e2eb3";
+    private readonly string _consumerSecret = "cfb18ea2fded4a8f869eeff929a16c20";
     public LoggingBackgroundJob(IStockDL stockDL, IHttpClientFactory httpClientFactory)
     {
         _stockDL = stockDL;
@@ -107,7 +106,7 @@ public class LoggingBackgroundJob : IJob
                 var data = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<ResultModel>(data);
 
-                if (result.data.Count > 0)
+                if (result != null && result.data != null && result.data.Count > 0)
                 {
                     var entity = result.data[0];
                     var sql = $@"UPDATE public.stocks

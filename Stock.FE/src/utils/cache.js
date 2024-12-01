@@ -1,5 +1,5 @@
 class Cache {
-  setCache(key, value, expires = 1000 * 60 * 60 * 24) {
+  setCache(key, value, expires = 1000 * 60 * 60 * 1) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       setTimeout(() => {

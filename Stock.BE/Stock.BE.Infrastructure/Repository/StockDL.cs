@@ -206,8 +206,7 @@ namespace Stock.BE.Infrastructure.Repository
                             user_id = transactionsEntity.user_id,
                             total_volume = volumes,
                             total_tradeable_volume = stock.tradable_volume,
-                            matched_price = Math.Round(amounts / volumes, 2),
-                            current_price = Math.Round(stock.matched_price, 2)
+                            matched_price = Math.Round(amounts / volumes, 2)
                         };
                         await base.BaseInsertAsync(newDeal, "deals");
                     }
@@ -423,8 +422,7 @@ namespace Stock.BE.Infrastructure.Repository
                                 user_id = buy.user_id,
                                 total_volume = buy.volume - buy.rest,
                                 total_tradeable_volume = stock.tradable_volume,
-                                matched_price = Math.Round(transactionsEntity.order_price, 2),
-                                current_price = Math.Round(stock.matched_price, 2)
+                                matched_price = Math.Round(transactionsEntity.order_price, 2)
                             };
                             await base.BaseInsertAsync(newDeal, "deals");
                         }
@@ -444,7 +442,7 @@ namespace Stock.BE.Infrastructure.Repository
                     {
                         // Nếu chỉ bán được 1 phần thì vẫn thêm giao dịch nhưng khối lượng đặt bằng khối lượng chưa bán được 
                         transactionsEntity.status = 0;
-                        transactionsEntity.volume = startVolume;
+                        transactionsEntity.volume = transactionsEntity.volume - startVolume;
                         await base.BaseInsertAsync(transactionsEntity, "transactions");
 
                         if (stock != null)
@@ -459,7 +457,7 @@ namespace Stock.BE.Infrastructure.Repository
                                 created_at = DateTime.Now,
                                 order_price = transactionsEntity.order_price,
                                 matched_price = stock.matched_price,
-                                volume = transactionsEntity.volume - startVolume,
+                                volume = startVolume,
                                 status = 1
                             };
                             await base.BaseInsertAsync(newTran, "transactions");
@@ -570,7 +568,7 @@ namespace Stock.BE.Infrastructure.Repository
                         avg(cash_value) OVER (PARTITION BY DATE(created_at)) as cash_value
                     FROM table_asset_history 
                     WHERE user_id = @p_user_id 
-                    AND  DATE(created_at) BETWEEN NOW() - INTERVAL '{interval}' AND NOW();";
+                    AND  DATE(created_at) BETWEEN NOW() - INTERVAL '{interval}' AND NOW() order by created_at asc ;";
 
             var result = await _uow.Connection.QueryAsync<TableAssetHistoryModel>(sql, param, commandType: CommandType.Text);
 
@@ -626,5 +624,42 @@ namespace Stock.BE.Infrastructure.Repository
             await _uow.ExecuteDefault(sql, param);
         }
 
+        public async Task<Dictionary<string, List<StockEntity>>> GetReportStockAsync()
+        {
+            var result = new Dictionary<string, List<StockEntity>>();
+            var sql = @"
+                                        SELECT * FROM stocks 
+                                        WHERE change_price IS NOT NULL 
+                                        ORDER BY change_price DESC 
+                                        LIMIT 10;
+        
+                                        SELECT * FROM stocks 
+                                        WHERE change_price IS NOT NULL 
+                                        ORDER BY change_price ASC 
+                                        LIMIT 10;";
+            try
+            {
+                using (var multi = await _uow.Connection.QueryMultipleAsync(sql))
+                {
+                    var descendingStocks = multi.Read<StockEntity>().ToList();
+                    var ascendingStocks = multi.Read<StockEntity>().ToList();
+
+                    result.Add("desc", descendingStocks);
+                    result.Add("asc", ascendingStocks);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Unable to fetch stock report. Please try again later.", ex);
+            }
+
+            return result;
+        }
+
+        public async Task UpdateAssetUserAsync()
+        {
+            var sql = "select * from public.update_asset_user();";
+            await _uow.Connection.ExecuteAsync(sql);
+        }
     }
 }

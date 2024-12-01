@@ -11,7 +11,7 @@
             <div class="chart_title flex-between"><span>Tài sản ròng</span>
               <span>{{ ((asset[0] + asset[1]) / 1000000).toFixed(2) }} triệu</span>
             </div>
-            <div>
+            <div> 
               <mbutton @click="depositAmount" buttonText="Nạp tiền tài khoản" borderType="secondary" />
             </div>
           </div>

@@ -5,6 +5,7 @@ import Home from "@/views/home/Home.vue";
 import Login from "@/views/login/Login.vue";
 import Signup from "@/views/signup/Signup.vue";
 import Asset from "@/views/asset/Asset.vue";
+import Report from "@/views/report/Report.vue";
 import Purchase from "@/views/purchase/Purchase.vue";
 const routes = [
   {
@@ -27,8 +28,8 @@ const routes = [
   },
   {
     name: "purchase",
+    path: '/purchase/:stock_id?',
     component: Purchase,
-    path: "/purchase",
     meta: { requiresAuth: true, title: "Đặt lệnh" },
   },
   {
@@ -36,6 +37,12 @@ const routes = [
     component: Asset,
     path: "/asset",
     meta: { requiresAuth: true, title: "Tài sản" },
+  },
+  {
+    name: "report",
+    component: Report,
+    path: "/report",
+    meta: { requiresAuth: true, title: "Báo cáo" },
   },
 ];
 

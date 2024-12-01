@@ -32,5 +32,8 @@ namespace Stock.BE.Core.DL
         Task<List<string>> GetAllStockCodeAsync();
 
         Task UpdateStockAsync(string sql, object param);
+        Task<Dictionary<string, List<StockEntity>>> GetReportStockAsync();
+
+        Task UpdateAssetUserAsync();
     }
 }

@@ -10,7 +10,7 @@
       </div>
       <div class="home__right_table">
 
-        <ctable :columns="columnConfigs.columns" :datax="columnConfigs.datax" />
+        <ctable :columns="columnConfigs.columns" :datax="columnConfigs.datax" @clickRow="handleChooseStock" />
       </div>
     </div>
 
@@ -47,12 +47,14 @@ export default {
   },
   async mounted() {
     let datas = await StockAPI.get();
-    let dataConvert = datas;
+    let dataConvert = datas.sort((a, b) => a.stock_code.localeCompare(b.stock_code)); 
     this.columnConfigs.datax = [...dataConvert];
     this.orginalData = [...dataConvert];
   },
   methods: {
-
+    handleChooseStock(stock) {
+      this.$router.push({ name: 'purchase', params: { stock_id: stock.stock_id } });
+    }
   },
 }; </script>
 
