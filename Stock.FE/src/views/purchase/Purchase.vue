@@ -272,6 +272,13 @@ export default {
       const me = this;
       try {
         if (me.validate()) return;
+        if (me.asset.cash_value < me.objectMaster.order_price * me.objectMaster.volume * 1000) {
+          this.$store.commit("showToast", {
+            label: "Số tiền không đủ. Vui lòng nạp tiền để thực hiện giao dịch.",
+            type: 'error'
+          });
+        }
+
 
         const payload = {
           stock_id: me.currentStock.stock_id,

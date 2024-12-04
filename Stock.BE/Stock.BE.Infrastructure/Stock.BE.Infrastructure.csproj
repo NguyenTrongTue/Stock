@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stock.BE.Core\Stock.BE.Core.csproj" />
+    <ProjectReference Include="..\Stock.BE.Email\Stock.BE.Email.csproj" />
   </ItemGroup>
 
   <ItemGroup>

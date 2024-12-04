@@ -5,6 +5,7 @@ using Stock.BE.Core.DL;
 using Stock.BE.Core.Entity;
 using Stock.BE.Core.Enum;
 using Stock.BE.Core.Model;
+using Stock.BE.Email;
 using Stock.BE.Infrastructure.Repository.Base;
 using System.Data;
 using System.Runtime.InteropServices;
@@ -15,8 +16,12 @@ namespace Stock.BE.Infrastructure.Repository
 {
     public class StockDL : BaseRepository<StockEntity>, IStockDL
     {
-        public StockDL(IUnitOfWork unitOfWork) : base(unitOfWork)
+        private readonly IEmail _email;
+        private readonly IUserDL _userDL;
+        public StockDL(IUnitOfWork unitOfWork, IEmail email, IUserDL userDL) : base(unitOfWork)
         {
+            _email = email;
+            _userDL = userDL;
         }
         /// <summary>
         /// Đầu lấy ra thông tin các deal nắm giữ của người dùng
@@ -34,7 +39,7 @@ namespace Stock.BE.Infrastructure.Repository
                                     d.stock_id,
                                     s.stock_code,
                                     d.total_volume, 
-                                    d.total_tradeable_volume,
+                                    s.tradable_volume as total_tradeable_volume,
                                     d.matched_price, 
                                     s.matched_price as current_price,
                                     CAST(d.matched_price * d.total_volume * 1000 AS decimal) as cost_value,
@@ -111,7 +116,7 @@ namespace Stock.BE.Infrastructure.Repository
             else
             {
                 var obj = await this.GetTotalVolumeByUserId(transaction.user_id);
-                if (transaction.volume > obj?.total_volume)
+                if (obj == null || transaction.volume > obj?.total_volume)
                 {
                     result.Success = false;
                     result.Message = "Số lượng bán không được phép lớn hơn số lượng sở hữu hiện có ";
@@ -236,6 +241,10 @@ namespace Stock.BE.Infrastructure.Repository
                             string sqlUpdateTran = @$"update transactions set volume = @volume where transactions_id = @transactions_id;";
                             await _uow.ExecuteDefault(sqlUpdateTran, paramTran);
                         }
+                        if (stock != null)
+                        {
+                            await this.SendEmail(stock.stock_code, sell.user_id, sell.volume - sell.rest, "Bán");
+                        }
                         // Sau khi bán thành công tiến hành cập nhật lại tài sản của người bán
                         // Cập nhật lại thay đổi số tiền của người dùng                        
                         var user1 = await this.UpdateAssetUserAsync(sell.user_id, (sell.volume - sell.rest) * sell.matched_price, "+");
@@ -306,7 +315,6 @@ namespace Stock.BE.Infrastructure.Repository
                                             ;";
 
                 var buys = await _uow.QueryList<TransactionModel>(sql, param);
-
                 // Nếu bán hết deal nắm giữ => xóa deal
                 if (dealId != null)
                 {
@@ -375,7 +383,7 @@ namespace Stock.BE.Infrastructure.Repository
                         // Nếu chỉ thực hiện mua được 1 phần thì tạo ra 1 lệnh mua thành công và cập nhật lại số lượng lệnh mua cũ 
                         else
                         {
-                            if (stock != null && (buy.rest < buy.volume))
+                            if (stock != null && (buy.rest < buy.volume && buy.rest > 0))
                             {
                                 var newTran = new TransactionsEntity
                                 {
@@ -398,7 +406,7 @@ namespace Stock.BE.Infrastructure.Repository
                             await _uow.ExecuteDefault(sqlUpdateTran, paramTran);
                         }
                         // Tạo deal nắm giữ với mỗi lệnh mua thành công
-                        if (buy.rest < buy.volume && stock != null)
+                        if (buy.rest > 0 && buy.rest < buy.volume && stock != null)
                         {
                             var newDeal = new DealEntity
                             {
@@ -411,6 +419,7 @@ namespace Stock.BE.Infrastructure.Repository
                                 matched_price = Math.Round(transactionsEntity.order_price, 2)
                             };
                             await base.BaseInsertAsync(newDeal, "deals");
+                            await this.SendEmail(stock.stock_code, buy.user_id, buy.volume - buy.rest, "Mua");
                         }
                         // Sau khi bán thành công tiến hành cập nhật lại tài sản của người bán
                         // Cập nhật lại thay đổi số tiền của người dùng                        
@@ -647,5 +656,63 @@ namespace Stock.BE.Infrastructure.Repository
             var sql = "select * from public.update_asset_user();";
             await _uow.Connection.ExecuteAsync(sql);
         }
+        public async Task SendEmail(string stockCode, Guid userId, int volume, string action)
+        {
+            var user = await _userDL.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return;
+            }
+            var htmlBody = $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <title>Stock Notification</title>
+</head>
+<body style=""margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333;"">
+
+  <table style=""width: 100%; max-width: 600px; margin: 0 auto; background-color: #fff; border-collapse: collapse; border: 1px solid #ddd;"">
+    <tr>
+      <td style=""background-color: #4caf50; color: #fff; text-align: center; padding: 20px;"">
+        <h1 style=""margin: 0; font-size: 24px;"">Thông báo</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style=""padding: 20px; text-align: center;"">
+        <h2 style=""color: #4caf50; margin: 0;"">Thành công!</h2>
+        <p style=""font-size: 16px; margin: 10px 0;"">
+          {action} thành công <strong style=""color: #333;"">{volume}</strong> mã <strong style=""color: #333;"">{stockCode}</strong> trong tài khoản.
+        </p>
+        <p style=""font-size: 14px; color: #666; margin: 20px 0;"">
+          Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.
+        </p>
+        <a href=""http://150.95.113.231/purchase"" style=""display: inline-block; padding: 10px 20px; background-color: #4caf50; color: #fff; text-decoration: none; border-radius: 5px; font-size: 16px;"">
+          Xem chi tiết
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td style=""background-color: #f4f4f4; text-align: center; padding: 10px;"">
+        <p style=""font-size: 12px; color: #888; margin: 0;"">
+          © 2024 Copyright. Tất cả các quyền được bảo lưu.
+        </p>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+";
+            var request = new EmailDto()
+            {
+                Subject = "Thông báo",
+                To = user.email,
+                Body = $"Thông báo {action} mã {stockCode} thành công!",
+                HTMLBody = htmlBody
+            };
+            _email.SendMail(request);
+        }
+
     }
 }
