@@ -204,8 +204,6 @@ export default {
       const me = this;
       if (volume <= 0) {
         me.$refs.volume.setError('Khối lượng đặt phải lớn hơn 0.');
-      } else if (volume > me.objectMaster.buying_ability || volume > me.currentStock.volume) {
-        me.$refs.volume.setError('Khối lượng đặt vượt quá số biên cho phép.');
       }
       else if (volume % 100 != 0) {
         me.$refs.volume.setError('Khối lượng đặt là bội của 100.');
@@ -272,11 +270,16 @@ export default {
       const me = this;
       try {
         if (me.validate()) return;
-        if (me.asset.cash_value < me.objectMaster.order_price * me.objectMaster.volume * 1000) {
+        if (me.user.cash_value < me.objectMaster.order_price * me.objectMaster.volume * 1000) {
           this.$store.commit("showToast", {
             label: "Số tiền không đủ. Vui lòng nạp tiền để thực hiện giao dịch.",
             type: 'error'
           });
+          return;
+        }
+        else if (me.objectMaster.volume > me.objectMaster.buying_ability || me.objectMaster.volume > me.currentStock.volume) {
+          me.$refs.volume.setError('Khối lượng đặt vượt quá số biên cho phép.');
+          return;
         }
 
 

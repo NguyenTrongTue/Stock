@@ -9,11 +9,15 @@
       <div class="asset__right__content">
         <div class="column-chart">
           <div class="chart_title flex-between"><span>Top 10 mã tăng nhiều nhất trong ngày</span></div>
-          <ColumnChart :dataProps="desc" />
+          <ColumnChart :dataProps="desc" mainColor="#34c85e" />
         </div>
         <div class="column-chart">
           <div class="chart_title flex-between"><span>Top 10 mã giảm nhiều nhất trong ngày</span></div>
-          <ColumnChart :dataProps="asc" />
+          <ColumnChart :dataProps="asc" mainColor="#ff4242" />
+        </div>
+        <div class="column-chart">
+          <div class="chart_title flex-between"><span>Top 10 mã có khối lượng lớn nhất</span></div>
+          <ColumnChart :dataProps="volume" type="volume" mainColor="#f68fff" />
         </div>
       </div>
     </div>
@@ -34,6 +38,7 @@ export default {
     return {
       desc: {},
       asc: {},
+      volume: {}
     };
   },
 
@@ -52,7 +57,7 @@ export default {
           me.$store.commit("showLoading");
           const result = await StockAPI.getReportStock();
           me.$store.commit("hideLoading");
-          if (result.desc || result.asc) {
+          if (result.desc || result.asc || result.volume) {
             me.desc = {
               data: result.desc.map(item => item.change_price),
               labels: result.desc.map(item => item.stock_code)
@@ -60,6 +65,10 @@ export default {
             me.asc = {
               data: result.asc.map(item => item.change_price),
               labels: result.asc.map(item => item.stock_code)
+            }
+            me.volume = {
+              data: result.volume.map(item => item.total_assets),
+              labels: result.volume.map(item => item.stock_code)
             }
           }
 

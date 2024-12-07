@@ -22,6 +22,7 @@ export default {
                     height: 450,
                     stacked: true,
                 },
+                colors: ['#f68fff', '#46d96f'],
                 dataLabels: {
                     enabled: true,
                     formatter: function (val) {
@@ -56,9 +57,7 @@ export default {
                 },
                 yaxis: {
                     labels: {
-                        formatter: function (value) {
-                            return value / 1000000 + " M"; // Thêm text sau giá trị trục Y
-                        },
+                        formatter: (value) => `${value / 1_000_000} M`,
                         style: {
                             colors: ['#85868a'], // Đổi màu chữ nhãn trục Y
                             fontSize: '14px', // Thay đổi kích thước font chữ

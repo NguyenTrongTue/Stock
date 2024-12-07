@@ -147,9 +147,9 @@ export default {
       this.$emit("update:modelValue", result);
     },
     handleIncrease() {
-      this.assignDataValue(+this.currentValue + this.defaultChangeValue);
-
-      this.$emit("update:modelValue", +this.currentValue + this.defaultChangeValue);
+      let value = +this.currentValue + this.defaultChangeValue;
+      this.assignDataValue(value);
+      this.$emit("update:modelValue", value);
     },
     /**
      * Format lại giá trị hiển thị trong input theo định dạng.

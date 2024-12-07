@@ -265,7 +265,7 @@ namespace Stock.BE.Infrastructure.Repository
                         await base.BaseInsertAsync(transactionsEntity, "transactions");
                     }
                     // Cập nhật lại thay đổi số tiền của người dùng                    
-                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, volumes * amounts + (transactionsEntity.volume - volumes) * transactionsEntity.order_price);
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, volumes * amounts/1000 + (transactionsEntity.volume - volumes) * transactionsEntity.order_price);
                     await this.InsertTableAssetHistoryAsync(user);
                 }
                 else
@@ -459,7 +459,7 @@ namespace Stock.BE.Infrastructure.Repository
                         }
                     }
                     // Cập nhật lại thay đổi số tiền của người dùng                    
-                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, amounts, "+");
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, amounts / 1000, "+");
                     await this.InsertTableAssetHistoryAsync(user);
                 }
                 else
@@ -631,16 +631,24 @@ namespace Stock.BE.Infrastructure.Repository
                                         SELECT * FROM stocks 
                                         WHERE change_price IS NOT NULL 
                                         ORDER BY change_price ASC 
+                                        LIMIT 10;
+
+                                        SELECT * FROM stocks 
+                                        WHERE change_price IS NOT NULL 
+                                        ORDER BY total_assets DESC 
                                         LIMIT 10;";
+
             try
             {
                 using (var multi = await _uow.Connection.QueryMultipleAsync(sql))
                 {
                     var descendingStocks = multi.Read<StockEntity>().ToList();
                     var ascendingStocks = multi.Read<StockEntity>().ToList();
+                    var voulumeStocks = multi.Read<StockEntity>().ToList();
 
                     result.Add("desc", descendingStocks);
-                    result.Add("asc", ascendingStocks);
+                    result.Add("asc", ascendingStocks); 
+                    result.Add("volume", voulumeStocks);
                 }
             }
             catch (Exception ex)

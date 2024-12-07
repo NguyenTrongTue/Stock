@@ -30,7 +30,7 @@ export default {
                 const ampm = hour < 12 ? "AM" : "PM";
 
                 // get date components
-                const month = today.getMonth();
+                const month = today.getMonth() + 1;
                 const year = today.getFullYear();
                 const day = today.getDate();
 

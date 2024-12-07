@@ -10,6 +10,14 @@ export default {
         dataProps: {
             type: Object,
             default: []
+        },
+        type: {
+            type: String,
+            default: 'price'
+        },
+        mainColor: {
+            type: String,
+            required: true
         }
     },
 
@@ -21,9 +29,9 @@ export default {
                     type: 'bar',
                     height: 450
                 },
+                colors: [this.mainColor],
                 dataLabels: {
                     enabled: true,
-
                     style: {
                         fontSize: '12px',
                         colors: ["white"]
@@ -91,6 +99,28 @@ export default {
                             categories: newValue.labels
                         }
                     };
+                    if (me.type === 'volume') {
+                        this.chartOptions = {
+                            ...this.chartOptions,
+                            dataLabels: {
+                                ...this.chartOptions.dataLabels,
+                                formatter: function (val) {
+                                    return val % 1000000000 == 0 ? val / 1000000000 + "Tỷ" : (val / 1000000000).toFixed(2) + "Tỷ";
+                                },
+                            },
+                            yaxis: {
+                                ...this.chartOptions.yaxis,
+                                labels: {
+                                    ...this.chartOptions.yaxis.labels,
+                                    formatter: function (val) {
+                                        return val % 1000000000 == 0 ? val / 1000000000 + "Tỷ" : (val / 1000000000).toFixed(2) + "Tỷ";
+                                    },
+                                }
+
+                            }
+
+                        };
+                    }
                 }
             },
             deep: true

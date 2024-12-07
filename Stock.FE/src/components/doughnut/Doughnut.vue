@@ -35,6 +35,7 @@ export default {
                     type: 'donut', // Đặt loại biểu đồ là 'donut'
                 },
                 labels: ['Cổ phiếu', 'Tiền'], // Nhãn cho các phần của biểu đồ
+                colors: ['#f68fff', '#46d96f'],
                 legend: {
                     formatter: function (val, opts) {
                         return `<span class="legend-text-wrapper"><span class="legend-text">${val}</span><span>` + " " + (opts.w.globals.series[opts.seriesIndex] / 1000000).toFixed(2) + ' triệu';

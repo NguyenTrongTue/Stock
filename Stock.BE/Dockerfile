@@ -4,6 +4,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY ["Stock.BE.Email/Stock.BE.Email.csproj", "Stock.BE.Email/"]
 COPY ["Stock.BE.Jobs/Stock.BE.Jobs.csproj", "Stock.BE.Jobs/"]
 COPY ["Stock.BE.Infrastructure/Stock.BE.Infrastructure.csproj", "Stock.BE.Infrastructure/"]
 COPY ["Stock.BE.Core/Stock.BE.Core.csproj", "Stock.BE.Core/"]
