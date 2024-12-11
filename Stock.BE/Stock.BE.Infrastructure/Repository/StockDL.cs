@@ -265,14 +265,32 @@ namespace Stock.BE.Infrastructure.Repository
                         await base.BaseInsertAsync(transactionsEntity, "transactions");
                     }
                     // Cập nhật lại thay đổi số tiền của người dùng                    
-                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, volumes * amounts/1000 + (transactionsEntity.volume - volumes) * transactionsEntity.order_price);
+                    var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, volumes * amounts / 1000 + (transactionsEntity.volume - volumes) * transactionsEntity.order_price);
                     await this.InsertTableAssetHistoryAsync(user);
                 }
                 else
                 {
-                    // Nếu không có lệnh bán nào được khớp
-                    transactionsEntity.status = 0;
-                    // Thực hiện thêm mới giao dịch
+                    var matchStocks = await this.GetStocksForBuy(transactionsEntity.order_price, transactionsEntity.stock_id);
+                    if (matchStocks != null && matchStocks.Count > 0)
+                    {
+                        var matchStock = matchStocks[0];
+                        transactionsEntity.status = 1;
+                        var newDeal = new DealEntity
+                        {
+                            deal_id = Guid.NewGuid(),
+                            stock_id = transactionsEntity.stock_id,
+                            stock_code = matchStock.stock_code,
+                            user_id = transactionsEntity.user_id,
+                            total_volume = transactionsEntity.volume,
+                            total_tradeable_volume = matchStock.tradable_volume,
+                            matched_price = matchStock.matched_price
+                        };
+                        await base.BaseInsertAsync(newDeal, "deals");
+                    }
+                    else
+                    {
+                        transactionsEntity.status = 0;
+                    }
                     await base.BaseInsertAsync(transactionsEntity, "transactions");
                     var user = await this.UpdateAssetUserAsync(transactionsEntity.user_id, transactionsEntity.volume * transactionsEntity.order_price);
                     await this.InsertTableAssetHistoryAsync(user);
@@ -284,6 +302,18 @@ namespace Stock.BE.Infrastructure.Repository
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<List<StockEntity>> GetStocksForBuy(decimal matchPrice, Guid stockId)
+        {
+            var param = new Dictionary<string, object>
+                {
+                    { $"@stock_id", stockId },
+                    { $"@match_price", matchPrice }
+                };
+            string sql = "select * from stocks s where stock_id = @stock_id and matched_price <= @match_price;";
+            var result = await _uow.QueryList<StockEntity>(sql, param);
+            return result;
+        }
+
         /// <summary>
         /// Hàm thực hiện lệnh bán mã chứng khoán
         /// </summary>
@@ -555,14 +585,20 @@ namespace Stock.BE.Infrastructure.Repository
 
             // Câu truy vấn SQL tổng quát với khoảng thời gian động
             var sql = @$"
-                    SELECT distinct 
-                        user_id, 
-                        DATE(created_at) as created_at,
-                        avg(total_net_assets) OVER (PARTITION BY DATE(created_at)) as total_net_assets,
-                        avg(stock_value) OVER (PARTITION BY DATE(created_at)) as stock_value,
-                        avg(cash_value) OVER (PARTITION BY DATE(created_at)) as cash_value
-                    FROM table_asset_history 
-                    WHERE user_id = @p_user_id 
+                    with v_temp as (
+	                                            select 
+		                                            user_id,
+		                                            total_net_assets,
+		                                            stock_value,
+		                                            cash_value,
+		                                            dense_rank() over (partition by user_id, DATE(created_at) order by created_at desc) as rnk,
+		                                            created_at 
+	                                            from table_asset_history
+                                            )
+                                              SELECT distinct 
+                                                  *
+                                              FROM v_temp 
+                    WHERE user_id = @p_user_id and rnk = 1
                     AND  DATE(created_at) BETWEEN NOW() - INTERVAL '{interval}' AND NOW() order by created_at asc ;";
 
             var result = await _uow.Connection.QueryAsync<TableAssetHistoryModel>(sql, param, commandType: CommandType.Text);
@@ -647,7 +683,7 @@ namespace Stock.BE.Infrastructure.Repository
                     var voulumeStocks = multi.Read<StockEntity>().ToList();
 
                     result.Add("desc", descendingStocks);
-                    result.Add("asc", ascendingStocks); 
+                    result.Add("asc", ascendingStocks);
                     result.Add("volume", voulumeStocks);
                 }
             }

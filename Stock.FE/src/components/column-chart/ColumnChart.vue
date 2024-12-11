@@ -22,7 +22,7 @@ export default {
                     height: 450,
                     stacked: true,
                 },
-                colors: ['#f68fff', '#46d96f'],
+                colors: ['#46d96f', '#f68fff'],
                 dataLabels: {
                     enabled: true,
                     formatter: function (val) {
